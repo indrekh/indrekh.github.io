@@ -34,10 +34,6 @@ document.write("<a href='" + "mail" + "to:" + username + "@" + hostname + "'>" +
 </script>
 <div class="bgimg w3-display-container w3-animate-opacity w3-text-white">
   <div class="w3-display-topleft w3-padding-large w3-xlarge">
-<p id="date"></p>
-<script>
-document.getElementById("date").innerHTML = Date();
-</script> 
   
   </div>
   <div class="w3-display-middle">
@@ -48,7 +44,10 @@ document.getElementById("date").innerHTML = Date();
     <p class="w3-large w3-center">* SSL Checker - SSL Certificate Verify - SSL Shopper <br><a href="https://www.sslshopper.com/ssl-checker.html">https://www.sslshopper.com/ssl-checker.html</a></p>
     <p class="w3-large w3-center">* SSL Certificate Checker - Diagnostic Tool | DigiCert.com <br><a href="https://www.digicert.com/help/">https://www.digicert.com/help/</a></p>
     <hr class="w3-border-grey" style="margin:auto;width:40%">
-    <p class="w3-large w3-center" id="date"></p>
+    <p class="w3-large w3-center" id="date">
+    <script>
+    document.getElementById("date").innerHTML = Date();
+    </script></p>
   </div>
   <div class="w3-display-bottomleft w3-padding-large">
     Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a>
