@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="et">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ssl.ee — SSL-sertifikaadi kontrollija</title>
+  <meta name="description" content="Kontrolli ühe klikiga, kas domeeni SSL-sertifikaat on kehtiv: kehtivusaeg, väljaandja ja kaitstud domeenid. Tasuta ja ilma registreerimiseta.">
+  <meta name="theme-color" content="#04060c">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta property="og:title" content="ssl.ee — SSL-sertifikaadi kontrollija">
+  <meta property="og:description" content="Kas sinu SSL-sertifikaat on veel kehtiv? Sisesta domeen ja saa vastus sekundiga.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ssl.ee/">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#" aria-label="ssl.ee — avaleht">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#04241a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        </span>
+        <span class="brand-name">ssl<em>.ee</em></span>
+      </a>
+      <div class="lang-switch" role="group" aria-label="Keele valik / Language">
+        <button id="lang-et" type="button" aria-pressed="true">ET</button>
+        <button id="lang-en" type="button" aria-pressed="false">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <p class="hero-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 4.4-3.4 8.5-8 9-4.6-.5-8-4.6-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+          <span data-i18n="hero.badge">Tasuta tööriist · andmed Certificate Transparency logidest</span>
+        </p>
+        <h1 data-i18n-html="hero.title">Kas sinu domeeni <span class="grad">SSL-sertifikaat</span> on veel kehtiv?</h1>
+        <p class="hero-sub" data-i18n="hero.subtitle">Sisesta domeeninimi ja vaata ühe klikiga, kuni sertifikaat kehtib, kes selle välja andis ja milliseid aadresse see kaitseb.</p>
+
+        <form id="check-form" class="check-form" novalidate>
+          <span class="input-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          </span>
+          <input id="domain-input" class="domain-input" type="text" inputmode="url"
+                 autocomplete="off" autocapitalize="none" spellcheck="false"
+                 placeholder="sinudomeen.ee" aria-label="Domeen"
+                 data-i18n-aria-label="form.ariaLabel" data-i18n-placeholder="form.placeholder">
+          <button id="check-btn" class="check-btn" type="submit">
+            <span class="btn-label" data-i18n="form.button">Kontrolli</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg>
+          </button>
+        </form>
+
+        <div class="examples">
+          <span data-i18n="hero.try">Proovi:</span>
+          <button type="button" class="chip" data-domain="google.com">google.com</button>
+          <button type="button" class="chip" data-domain="wikipedia.org">wikipedia.org</button>
+          <button type="button" class="chip" data-domain="delfi.ee">delfi.ee</button>
+        </div>
+        <p class="privacy-note" data-i18n="hero.privacy">Kõik päringud käivad otse sinu brauseris – ssl.ee ei salvesta kontrollitavaid domeene.</p>
+      </div>
+    </section>
+
+    <section class="checker container" id="checker" aria-live="polite">
+      <div id="scan-state" class="scan-state" hidden>
+        <span class="spinner" aria-hidden="true"></span>
+        <div class="scan-text">
+          <strong id="scan-host"></strong>
+          <p id="scan-msg"></p>
+        </div>
+      </div>
+
+      <div id="error-state" class="error-state" hidden>
+        <div class="error-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.5v.01"/></svg>
+        </div>
+        <div>
+          <h2 data-i18n="error.title">Kontroll ebaõnnestus</h2>
+          <p id="error-msg"></p>
+          <p class="error-links" id="error-links" hidden></p>
+        </div>
+      </div>
+
+      <article id="result-card" class="result-card" hidden>
+        <header class="result-head">
+          <span class="status-icon" id="status-icon" aria-hidden="true"></span>
+          <div class="status-text">
+            <h2 id="status-title"></h2>
+            <p id="status-domain" class="domain"></p>
+          </div>
+          <span class="status-chip" id="status-chip"></span>
+        </header>
+        <p class="advice" id="advice"></p>
+
+        <div class="result-body">
+          <div class="gauge-wrap">
+            <div class="gauge">
+              <svg viewBox="0 0 148 148" aria-hidden="true">
+                <circle class="gauge-track" cx="74" cy="74" r="56"/>
+                <circle class="gauge-progress" id="gauge-progress" cx="74" cy="74" r="56"/>
+              </svg>
+              <div class="gauge-center">
+                <span class="gauge-number" id="gauge-number"></span>
+                <span class="gauge-label" id="gauge-label"></span>
+              </div>
+            </div>
+            <p class="gauge-caption" id="gauge-caption"></p>
+          </div>
+
+          <dl class="details">
+            <div class="detail"><dt data-i18n="detail.issuer">Väljaandja</dt><dd id="detail-issuer"></dd></div>
+            <div class="detail"><dt data-i18n="detail.validFrom">Kehtiv alates</dt><dd id="detail-from"></dd></div>
+            <div class="detail"><dt data-i18n="detail.validUntil">Kehtib kuni</dt><dd id="detail-until"></dd></div>
+            <div class="detail"><dt data-i18n="detail.fingerprint">Sõrmejälg (SHA-256)</dt><dd id="detail-fp" class="mono"></dd></div>
+          </dl>
+        </div>
+
+        <div class="san-block">
+          <h3 id="san-title"></h3>
+          <ul class="san-list" id="san-list"></ul>
+          <button type="button" class="san-toggle" id="san-toggle" hidden></button>
+        </div>
+
+        <div class="badges" id="badges" hidden></div>
+
+        <div class="obs" id="obs" hidden>
+          <div class="obs-head">
+            <h3 data-i18n="obs.title">Turvapeadete hinne</h3>
+            <span class="obs-provider">MDN HTTP Observatory</span>
+          </div>
+          <div class="obs-body">
+            <span class="obs-grade" id="obs-grade">A+</span>
+            <div class="obs-meta">
+              <span id="obs-score"></span>
+              <a id="obs-link" target="_blank" rel="noopener"></a>
+            </div>
+          </div>
+        </div>
+
+        <footer class="result-foot">
+          <p class="source-note" id="source-note"></p>
+          <div class="external-links">
+            <a id="link-ssllabs" target="_blank" rel="noopener"></a>
+            <a id="link-crtsh" target="_blank" rel="noopener"></a>
+          </div>
+        </footer>
+      </article>
+
+      <div id="history" class="history" hidden>
+        <div class="history-head">
+          <h3 data-i18n="history.title">Hiljutised kontrollid</h3>
+          <button type="button" id="history-clear" class="history-clear" data-i18n="history.clear">Tühjenda</button>
+        </div>
+        <div class="history-list" id="history-list"></div>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="container">
+        <h2 data-i18n="features.title">Miks sertifikaati regulaarselt kontrollida?</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            </span>
+            <h3 data-i18n="feat1.title">Külastajate usaldus</h3>
+            <p data-i18n="feat1.text">Aegunud sertifikaadiga saidi avamisel näitab brauser hoiatust ja külastaja lahkub kohe – koos temaga kaob ka usaldus.</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            </span>
+            <h3 data-i18n="feat2.title">Otsingumootorid</h3>
+            <p data-i18n="feat2.text">HTTPS on Google'i järjestamise tegur. Vigase sertifikaadiga sait langeb otsingutulemustes oluliselt tagasi või kaob neist hoopis.</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            </span>
+            <h3 data-i18n="feat3.title">Krüptitud liiklus</h3>
+            <p data-i18n="feat3.text">SSL/TLS krüptib külastaja ja serveri vahelise ühenduse. Aegunud sertifikaat jätab andmed kuulatavaks ja muudetavaks.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq">
+      <div class="container">
+        <h2 data-i18n="faq.title">Korduma kippuvad küsimused</h2>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary data-i18n="faq1.q">Mida see leht teeb?</summary>
+            <p data-i18n="faq1.a">ssl.ee kontrollib domeeni SSL/TLS-sertifikaadi kehtivust: kuni see kehtib, kes selle välja andis ja milliseid aadresse see kaitseb. Piisab domeeninimest – vastus on olemas mõne sekundiga.</p>
+          </details>
+          <details class="faq-item">
+            <summary data-i18n="faq2.q">Kust andmed tulevad?</summary>
+            <p data-i18n="faq2.a">Sertifikaadi andmed loetakse Certificate Transparency logidest teenuse Cert Spotter kaudu (varuallikaks crt.sh) ja turvapeadete hinne tuleb MDN HTTP Observatoryst. Kõik päringud käivad otse sinu brauseris.</p>
+          </details>
+          <details class="faq-item">
+            <summary data-i18n="faq3.q">Miks kuvatud info või tegelikust erineda?</summary>
+            <p data-i18n="faq3.a">CT logidest kuvatakse uusim välja antud sertifikaat. Server või CDN teenindab mõnikord varasemat või muud sertifikaati – täielikuks analüüsiks (sh protokollid ja šifrid) kasuta allpool olevat SSL Labsi linki.</p>
+          </details>
+          <details class="faq-item">
+            <summary data-i18n="faq4.q">Mis tähendab „aegub varsti“?</summary>
+            <p data-i18n="faq4.a">Sertifikaadile on jäänud alla 30 päeva. Soovitame uuendada kohe – nii ei satu leht uuenduse ununemise tõttu kättesaamatuks.</p>
+          </details>
+          <details class="faq-item">
+            <summary data-i18n="faq5.q">Kas kasutamine on tasuta?</summary>
+            <p data-i18n="faq5.a">Jah. ssl.ee on tasuta, ei nõua registreerimist ega kogu isikuandmeid. Küll võivad kehtida andmeallikate endi päringupiirangud.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-brand">ssl<em>.ee</em></p>
+      <p class="footer-tagline" data-i18n="footer.tagline">Privaatsust austav SSL-sertifikaadi kontrollija – kõik päringud käivad sinu brauseris.</p>
+      <p class="footer-meta"><span data-i18n="footer.sources">Andmeallikad: Cert Spotter · crt.sh · MDN HTTP Observatory</span> · <span id="footer-year"></span></p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
