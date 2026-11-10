@@ -188,8 +188,8 @@
     try {
       const saved = localStorage.getItem('ssl-ee-lang');
       if (saved === 'et' || saved === 'en') return saved;
-      return (navigator.language || 'et').toLowerCase().startsWith('et') ? 'et' : 'en';
-    } catch { return 'et'; }
+    } catch { /* privaatne režiim */ }
+    return 'et'; // ssl.ee on eestikeelne sait — vaikimisi eesti keel
   }
 
   function t(key, vars) {
