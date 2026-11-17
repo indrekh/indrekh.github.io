@@ -11,6 +11,9 @@ milliseid aadresse see kaitseb.
 | `index.html`   | Lehe struktuur (eesti + inglise keeles)        |
 | `styles.css`   | Tume visuaal (rohelsed/sinised aktsendid)     |
 | `app.js`       | Kontrollimise loogika, i18n, ajalugu          |
+| `api-docs.html`| API dokumentatsioon (ET/EN), link lehe päises  |
+| `api/worker.js`| Eraldi Cloudflare Worker: PEM / täielik ahel   |
+| `api/wrangler.toml` | Workeri juurutuskonfiguratsioon          |
 | `favicon.svg`  | Lehe ikoon (rohkli lukk)                       |
 
 ## Kuidas töötab
@@ -48,6 +51,9 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
 8. **Hariv lisasisu** – tulemuskardi väljadel on lühiselgitused ja lehe all
    on sõnastik väljade kohta ning samm-sammult juhend sertifikaadi uuendamiseks
    Let's Encrypti ja Certbotiga (sh automaatne uuendamine ja Cloudflare'i nipp).
+9. **Eraldi curl-API** – `api/worker.js` on eraldi Cloudflare Worker, mis tagastab
+   kas ühe sertifikaadi PEM-i või täieliku ahela. Põhileht jääb staatiliseks.
+   Dokumentatsioon ja curl-näited asuvad lehel `api-docs.html` (link päises).
 
 Täpseks kättesaamise analüüsiks (protokollid, šifrid, usaldusahel) suunab leht
 kasutaja SSL Labsi raportile.
@@ -72,6 +78,26 @@ Leht on puhas staatiline – sobib igale majutajale:
    seosta kohandatud domeen `ssl.ee` (DNS: CNAME).
 3. Lülita majutuse juures HTTPS sisse – SSL-kontrollijal peab ise `https://ssl.ee`
    ilus roheline lukk olema. (Cloudflare/Netlify annavad sertifikaadi tasuta.)
+
+### curl-API juurutamine (valikuline)
+
+```bash
+cd api
+# 1. api/wrangler.toml sisaldab juba route = { pattern = "ssl.ee/api/*", zone_name = "ssl.ee" }
+#    (oma tsoon tuleb vajadusel asendada)
+wrangler deploy
+curl https://ssl.ee/api/health
+```
+
+Endpointid:
+
+```bash
+curl "https://ssl.ee/api/pem?d=wikipedia.org"    # ainult PEM
+curl "https://ssl.ee/api/chain?d=wikipedia.org"  # ainult täielik ahel
+curl "https://ssl.ee/api/?d=wikipedia.org"       # mõlemad JSON-ina
+```
+
+Täpsemad näited, parameetrid ja veakoodid: `api-docs.html`.
 
 ## Märkused
 

@@ -27,6 +27,8 @@
   const I18N = {
     et: {
       'meta.title': 'ssl.ee — SSL-sertifikaadi kontrollija',
+      'nav.api': 'API',
+      'nav.apiAria': 'API dokumentatsioon',
       'hero.badge': 'Tasuta tööriist · andmed Certificate Transparency logidest',
       'hero.title': 'Kas sinu domeeni <span class="grad">SSL-sertifikaat</span> on veel kehtiv?',
       'hero.subtitle': 'Sisesta domeeninimi ja vaata ühe klikiga, kuni sertifikaat kehtib, kes selle välja andis ja milliseid aadresse see kaitseb.',
@@ -148,6 +150,8 @@
     },
     en: {
       'meta.title': 'ssl.ee — SSL certificate checker',
+      'nav.api': 'API',
+      'nav.apiAria': 'API documentation',
       'hero.badge': 'Free tool · data from Certificate Transparency logs',
       'hero.title': 'Is your domain\'s <span class="grad">SSL certificate</span> still valid?',
       'hero.subtitle': 'Enter a domain name and instantly see how long the certificate is valid, who issued it, and which hostnames it protects.',

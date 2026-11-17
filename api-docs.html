@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="et">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-et="ssl.ee API dokumentatsioon" data-en="ssl.ee API documentation">ssl.ee API dokumentatsioon</title>
+  <meta name="description" content="ssl.ee API — hangi sertifikaadi PEM või täielik sertifikaadiahhel ühe curl-käsklusega. Endpointid, näited ja juurutusjuhend.">
+  <meta name="theme-color" content="#04060c">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .docs { padding: 56px 0 80px; max-width: 980px; }
+    .docs-head { text-align: center; margin-bottom: 44px; }
+    .docs-head h1 { font-size: clamp(28px, 4.5vw, 42px); margin: 14px 0 12px; letter-spacing: -.02em; }
+    .docs-head p { color: var(--muted); max-width: 640px; margin: 0 auto; font-size: 15px; line-height: 1.65; }
+    .api-link {
+      text-decoration: none; font-size: 12.5px; font-weight: 700; color: var(--green);
+      padding: 7px 13px; border-radius: 999px; border: 1px solid rgba(52, 211, 153, .3);
+      background: rgba(52, 211, 153, .08); transition: .18s;
+    }
+    .api-link:hover { background: rgba(52, 211, 153, .18); color: #fff; }
+    .header-nav { display: flex; align-items: center; gap: 12px; }
+    .docs-section { margin-bottom: 40px; }
+    .docs-section h2 {
+      font-size: 21px; margin: 0 0 14px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px;
+    }
+    .docs-section h2 .num {
+      font: 700 12px/1 var(--mono); color: var(--blue);
+      background: rgba(96, 165, 250, .1); border: 1px solid rgba(96, 165, 250, .25);
+      border-radius: 6px; padding: 5px 7px;
+    }
+    .docs-section p { color: var(--muted); font-size: 14px; line-height: 1.7; margin: 0 0 14px; }
+    .docs-section a { color: var(--blue); }
+    .docs-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .docs-table th, .docs-table td {
+      text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border);
+      vertical-align: top; color: var(--muted); line-height: 1.5;
+    }
+    .docs-table th { color: var(--text); font-size: 11.5px; text-transform: uppercase; letter-spacing: .07em; }
+    .docs-table code, .docs-section p code {
+      font: 12px/1.4 var(--mono); color: var(--green);
+      background: rgba(52, 211, 153, .08); border: 1px solid rgba(52, 211, 153, .2);
+      border-radius: 5px; padding: 1px 5px; word-break: break-all;
+    }
+    .method { color: var(--blue); font-weight: 700; font-family: var(--mono); font-size: 12px; }
+    .code-card {
+      background: rgba(2, 6, 14, .85); border: 1px solid var(--border-strong);
+      border-radius: 12px; overflow: hidden; margin-bottom: 14px;
+    }
+    .code-label {
+      padding: 9px 14px; font-size: 11.5px; color: var(--faint);
+      border-bottom: 1px solid var(--border); background: var(--panel);
+    }
+    .code-card pre { margin: 0; padding: 14px; overflow-x: auto; }
+    .code-card code { font: 12px/1.65 var(--mono); color: #b9cbe0; white-space: pre; }
+    .code-card .cmt { color: #6b7d94; }
+    .code-card .cmd { color: var(--green); }
+    .note {
+      border-left: 3px solid var(--blue); background: rgba(96, 165, 250, .07);
+      border-radius: 0 10px 10px 0; padding: 12px 16px;
+      font-size: 13.5px; line-height: 1.6; color: var(--muted); margin: 16px 0 0;
+    }
+    .note strong { color: var(--text); }
+    @media (max-width: 620px) {
+      .header-nav { gap: 8px; }
+      .api-link { font-size: 11px; padding: 6px 9px; }
+      .docs-table th, .docs-table td { padding: 9px 8px; font-size: 12.5px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="ssl.ee — avaleht">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#04241a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        </span>
+        <span class="brand-name">ssl<em>.ee</em></span>
+      </a>
+      <div class="header-nav">
+        <a class="api-link" href="index.html" data-et="← Tagasi kontrollijasse" data-en="← Back to checker">← Tagasi kontrollijasse</a>
+        <div class="lang-switch" role="group" aria-label="Keele valik / Language">
+          <button id="lang-et" type="button" aria-pressed="true">ET</button>
+          <button id="lang-en" type="button" aria-pressed="false">EN</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container docs">
+    <div class="docs-head">
+      <p class="hero-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 4.4-3.4 8.5-8 9-4.6-.5-8-4.6-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+        <span data-et="Lihtne HTTP API · PEM ja täielik ahel" data-en="Simple HTTP API · PEM and full chain">Lihtne HTTP API · PEM ja täielik ahel</span>
+      </p>
+      <h1 data-et="ssl.ee API" data-en="ssl.ee API">ssl.ee API</h1>
+      <p data-et="Hangi sertifikaadi PEM või serveri saadetud täielik sertifikaadiahhel ühe curl-käsklusega. API kasutab täpselt samu andmeallikaid ja sama valikuloogikat nagu veebileht." data-en="Fetch a certificate PEM or the full chain served by a server with a single curl command. The API uses exactly the same data sources and selection logic as the website.">Hangi sertifikaadi PEM või serveri saadetud täielik sertifikaadiahhel ühe curl-käsklusega. API kasutab täpselt samu andmeallikaid ja sama valikuloogikat nagu veebileht.</p>
+    </div>
+
+    <section class="docs-section">
+      <h2><span class="num">01</span><span data-et="Endpointid" data-en="Endpoints">Endpointid</span></h2>
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th data-et="Meetod ja tee" data-en="Method &amp; path">Meetod ja tee</th>
+            <th data-et="Tagastus" data-en="Returns">Tagastus</th>
+            <th data-et="Kirjeldus" data-en="Description">Kirjeldus</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="method">GET</span> <code>/pem?d=&lt;domeen&gt;</code></td><td><code>text/plain</code></td><td data-et="Ühe (hetkel aktiivse) lehesertifikaadi PEM" data-en="PEM of the single (currently active) leaf certificate">Ühe (hetkel aktiivse) lehesertifikaadi PEM</td></tr>
+          <tr><td><span class="method">GET</span> <code>/chain?d=&lt;domeen&gt;</code></td><td><code>text/plain</code></td><td data-et="Täielik ahel: leht → vahepealsed → juur" data-en="Full chain: leaf → intermediates → root">Täielik ahel: leht → vahepealsed → juur</td></tr>
+          <tr><td><span class="method">GET</span> <code>/?d=&lt;domeen&gt;</code></td><td><code>application/json</code></td><td data-et="Mõlemad PEM-id koos metainfoga" data-en="Both PEMs with metadata">Mõlemad PEM-id koos metainfoga</td></tr>
+          <tr><td><span class="method">GET</span> <code>/</code></td><td><code>application/json</code></td><td data-et="Endpointide nimekiri (dokumentatsioon)" data-en="Endpoint listing (documentation)">Endpointide nimekiri (dokumentatsioon)</td></tr>
+          <tr><td><span class="method">GET</span> <code>/health</code></td><td><code>application/json</code></td><td data-et="Lihtne tervisekontroll" data-en="Simple health check">Lihtne tervisekontroll</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="docs-section">
+      <h2><span class="num">02</span><span data-et="curl-näited" data-en="curl examples">curl-näited</span></h2>
+
+      <div class="code-card">
+        <div class="code-label" data-et="Ainult sertifikaadi PEM" data-en="Certificate PEM only">Ainult sertifikaadi PEM</div>
+        <pre><code><span class="cmd">curl</span> "https://ssl.ee/api/pem?d=wikipedia.org"</code></pre>
+      </div>
+
+      <div class="code-card">
+        <div class="code-label" data-et="Ainult täielik ahel" data-en="Full chain only">Ainult täielik ahel</div>
+        <pre><code><span class="cmd">curl</span> "https://ssl.ee/api/chain?d=wikipedia.org"</code></pre>
+      </div>
+
+      <div class="code-card">
+        <div class="code-label" data-et="Salvesta PEM otse faili" data-en="Save PEM straight to a file">Salvesta PEM otse faili</div>
+        <pre><code><span class="cmd">curl</span> -o wikipedia.pem "https://ssl.ee/api/pem?d=wikipedia.org"
+<span class="cmd">openssl</span> x509 -in wikipedia.pem -noout -subject -dates</code></pre>
+      </div>
+
+      <div class="code-card">
+        <div class="code-label" data-et="Struktureeritud JSON-vastus" data-en="Structured JSON response">Struktureeritud JSON-vastus</div>
+        <pre><code><span class="cmd">curl</span> "https://ssl.ee/api/chain?d=wikipedia.org&amp;format=json" | jq .count</code></pre>
+      </div>
+
+      <div class="code-card">
+        <div class="code-label" data-et="Kõik korraga (JSON)" data-en="Everything at once (JSON)">Kõik korraga (JSON)</div>
+        <pre><code><span class="cmd">curl</span> "https://ssl.ee/api/?d=wikipedia.org" | jq '{certificate, chainCount}'</code></pre>
+      </div>
+    </section>
+
+    <section class="docs-section">
+      <h2><span class="num">03</span><span data-et="Parameetrid" data-en="Parameters">Parameetrid</span></h2>
+      <table class="docs-table">
+        <thead>
+          <tr><th data-et="Parameeter" data-en="Parameter">Parameeter</th><th data-et="Kohustuslik" data-en="Required">Kohustuslik</th><th data-et="Kirjeldus" data-en="Description">Kirjeldus</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>d</code></td><td data-et="jah" data-en="yes">jah</td><td data-et="Domeeninimi. Aktsepteerib ka https://… ja alamdomeenid. Näiteks wikipedia.org." data-en="Domain name. Also accepts https://… prefixes and subdomains. Example: wikipedia.org.">Domeeninimi. Aktsepteerib ka https://… ja alamdomeenid. Näiteks wikipedia.org.</td></tr>
+          <tr><td><code>format</code></td><td data-et="ei" data-en="no">ei</td><td data-et-html="Lisand <code>format=json</code>, et saada PEM-i asemel JSON-objekt metainfoga. Vaikeväärtus on <code>text/plain</code>." data-en-html="Add <code>format=json</code> to receive a JSON object with metadata instead of a raw PEM. Defaults to <code>text/plain</code>.">Lisand <code>format=json</code>, et saada PEM-i asemel JSON-objekt metainfoga. Vaikeväärtus on <code>text/plain</code>.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="docs-section">
+      <h2><span class="num">04</span><span data-et="Vastused ja veakoodid" data-en="Responses &amp; errors">Vastused ja veakoodid</span></h2>
+      <p data-et-html="PEM-i vastus on <code>text/plain</code> ja lõppeb reavahetusega – sobib otse <code>openssl</code>-ile ja <code>.pem</code>-faili salvestamiseks. JSON-vastus sisaldab alati <code>ok</code> välja." data-en-html="The PEM response is <code>text/plain</code> and ends with a newline — ready for <code>openssl</code> or saving as a <code>.pem</code> file. JSON responses always include an <code>ok</code> field.">PEM-i vastus on <code>text/plain</code> ja lõppeb reavahetusega – sobib otse <code>openssl</code>-ile ja <code>.pem</code>-faili salvestamiseks. JSON-vastus sisaldab alati <code>ok</code> välja.</p>
+      <table class="docs-table">
+        <thead>
+          <tr><th data-et="Staatus" data-en="Status">Staatus</th><th data-et="Kood" data-en="Code">Kood</th><th data-et="Tähendus" data-en="Meaning">Tähendus</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>200</td><td><code>ok</code></td><td data-et="Päring õnnestus" data-en="Request succeeded">Päring õnnestus</td></tr>
+          <tr><td>400</td><td><code>invalid_domain</code></td><td data-et="Parameeter d puudub või domeen ei ole korrektne" data-en="Missing d parameter or invalid domain">Parameeter d puudub või domeen ei ole korrektne</td></tr>
+          <tr><td>404</td><td><code>pem_not_found</code></td><td data-et="Selle domeeni kohta pole PEM-i andmeid saadaval" data-en="No PEM data available for this domain">Selle domeeni kohta pole PEM-i andmeid saadaval</td></tr>
+          <tr><td>404</td><td><code>unknown_endpoint</code></td><td data-et="Tundmatu tee — vaata GET /" data-en="Unknown path — see GET /">Tundmatu tee — vaata GET /</td></tr>
+          <tr><td>405</td><td><code>method_not_allowed</code></td><td data-et="Toetatakse ainult GET ja OPTIONS" data-en="Only GET and OPTIONS are supported">Toetatakse ainult GET ja OPTIONS</td></tr>
+          <tr><td>502</td><td><code>chain_unavailable</code></td><td data-et="Trustico API ei tagastanud ahelat" data-en="Trustico API did not return a chain">Trustico API ei tagastanud ahelat</td></tr>
+          <tr><td>502</td><td><code>upstream_error</code></td><td data-et="Andmeallika päring ebaõnnestus (nt ajalõpp)" data-en="Upstream request failed (e.g. timeout)">Andmeallika päring ebaõnnestus (nt ajalõpp)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="docs-section">
+      <h2><span class="num">05</span><span data-et="Andmeallikad ja märkused" data-en="Data sources &amp; notes">Andmeallikad ja märkused</span></h2>
+      <p data-et="Ühe sertifikaadi PEM pärineb Certificate Transparency logidest (Cert Spotter) ja on seatud hetkel kehtivale lehesertifikaadile. Täielik ahel pärineb Trustico SSL Toolsist ja näitab just neid sertifikaate, mida server parasjagu teenindab – se võib erineda CT-logis olevast lehest." data-en="The single certificate PEM comes from Certificate Transparency logs (Cert Spotter) and is set to the currently valid leaf certificate. The full chain comes from Trustico SSL Tools and shows exactly the certificates the server is serving right now — it may differ from the leaf found in CT logs.">Ühe sertifikaadi PEM pärineb Certificate Transparency logidest (Cert Spotter) ja on seatud hetkel kehtivale lehesertifikaadile. Täielik ahel pärineb Trustico SSL Toolsist ja näitab just neid sertifikaate, mida server parasjagu teenindab – se võib erineda CT-logis olevast lehest.</p>
+      <p data-et-html="Vastustel on <code>Access-Control-Allow-Origin: *</code> ja <code>Cache-Control: public, max-age=3600</code>. API-võtit pole vaja. Kui soovid piirata kasutamist, lisa Workerisse oma autentimiskontroll." data-en-html="Responses include <code>Access-Control-Allow-Origin: *</code> and <code>Cache-Control: public, max-age=3600</code>. No API key is required. To restrict usage, add your own authentication check to the Worker.">Vastustel on <code>Access-Control-Allow-Origin: *</code> ja <code>Cache-Control: public, max-age=3600</code>. API-võtit pole vaja. Kui soovid piirata kasutamist, lisa Workerisse oma autentimiskontroll.</p>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-brand">ssl<em>.ee</em></p>
+      <p data-et="Privaatsust austav SSL-sertifikaadi kontrollija." data-en="A privacy-respecting SSL certificate checker.">Privaatsust austav SSL-sertifikaadi kontrollija.</p>
+      <p class="footer-meta">© 2026 ssl.ee</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      function setLang(lang) {
+        try { localStorage.setItem('ssl-ee-lang', lang); } catch (e) { /* privaatrežiim */ }
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-et]').forEach(function (el) {
+          var v = el.getAttribute('data-' + lang);
+          if (v !== null) el.textContent = v;
+        });
+        document.querySelectorAll('[data-et-html]').forEach(function (el) {
+          var v = el.getAttribute('data-' + lang + '-html');
+          if (v !== null) el.innerHTML = v;
+        });
+        document.getElementById('lang-et').setAttribute('aria-pressed', String(lang === 'et'));
+        document.getElementById('lang-en').setAttribute('aria-pressed', String(lang === 'en'));
+      }
+      var saved = 'et';
+      try { saved = localStorage.getItem('ssl-ee-lang') || 'et'; } catch (e) { /* ignore */ }
+      setLang(saved === 'en' ? 'en' : 'et');
+      document.getElementById('lang-et').addEventListener('click', function () { setLang('et'); });
+      document.getElementById('lang-en').addEventListener('click', function () { setLang('en'); });
+    })();
+  </script>
+</body>
+</html>
