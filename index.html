@@ -117,17 +117,42 @@
           </dl>
         </div>
 
+        <section id="cert-details" class="cert-details" hidden>
+          <h3 data-i18n="certdetails.title">Sertifikaadi tehnilised andmed</h3>
+          <dl class="details cert-details-grid">
+            <div class="detail"><dt data-i18n="certdetails.serial">Seerianumber</dt><dd id="cert-serial" class="mono"></dd></div>
+            <div class="detail"><dt data-i18n="certdetails.subject">Subjekt (DN)</dt><dd id="cert-subject"></dd></div>
+            <div class="detail"><dt data-i18n="certdetails.algorithm">Allkirja algoritm</dt><dd id="cert-signature"></dd></div>
+            <div class="detail"><dt data-i18n="certdetails.key">Avalik võti</dt><dd id="cert-key"></dd></div>
+          </dl>
+          <details class="pem-block">
+            <summary data-i18n="certdetails.pemToggle">Näita sertifikaadi PEM-i</summary>
+            <div class="pem-head">
+              <span id="cert-kind" class="pem-kind"></span>
+              <button type="button" class="copy-btn" id="copy-pem" data-i18n="certdetails.copy">Kopeeri PEM</button>
+            </div>
+            <pre id="cert-pem" class="pem-code"></pre>
+          </details>
+        </section>
+
         <div class="san-block">
           <h3 id="san-title"></h3>
           <ul class="san-list" id="san-list"></ul>
           <button type="button" class="san-toggle" id="san-toggle" hidden></button>
         </div>
 
+        <section id="timeline" class="timeline" hidden>
+          <h3 data-i18n="timeline.title">Väljaandmise ajalugu</h3>
+          <p id="timeline-summary" class="timeline-summary"></p>
+          <div id="timeline-track" class="timeline-track"></div>
+          <p id="timeline-note" class="timeline-note" hidden></p>
+        </section>
+
         <div class="badges" id="badges" hidden></div>
 
         <div class="obs" id="obs" hidden>
           <div class="obs-head">
-            <h3 data-i18n="obs.title">Turvapeadete hinne</h3>
+            <h3 data-i18n="obs.title">HTTP turvapäiste skoor</h3>
             <span class="obs-provider">MDN HTTP Observatory</span>
           </div>
           <div class="obs-body">

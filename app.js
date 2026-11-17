@@ -51,6 +51,19 @@
       'detail.validFrom': 'Kehtiv alates',
       'detail.validUntil': 'Kehtib kuni',
       'detail.fingerprint': 'Sõrmejälg (SHA-256)',
+      'certdetails.title': 'Sertifikaadi tehnilised andmed',
+      'certdetails.serial': 'Seerianumber',
+      'certdetails.subject': 'Subjekt (DN)',
+      'certdetails.algorithm': 'Allkirja algoritm',
+      'certdetails.key': 'Avalik võti',
+      'certdetails.pemToggle': 'Näita sertifikaadi PEM-i',
+      'certdetails.copy': 'Kopeeri PEM',
+      'certdetails.copied': 'Kopeeritud!',
+      'certdetails.precert': 'eel-sertifikaat (precert)',
+      'timeline.title': 'Väljaandmise ajalugu',
+      'timeline.summary': 'Viimase 12 kuu jooksul {n} väljaannet',
+      'timeline.issuers': '{n} väljaandjat',
+      'timeline.note': 'Domeenile on viimase aasta jooksul sertifikaate välja antud mitmelt väljaandjalt:',
       'sans.title': 'Kaitstud domeenid ({n})',
       'sans.more': 'Näita kõiki ({n})',
       'sans.less': 'Näita vähem',
@@ -60,7 +73,7 @@
       'advice.expiring': 'Uuenda sertifikaat varakult, et vältida teenuse katkemist.',
       'advice.expired': 'Uuenda sertifikaat viivitamatult – muidu brauserid ei pruugi saiti enam avada.',
       'source.note': 'Andmed: Certificate Transparency logid ({source}) · kuvatud on uusim väljaanne',
-      'obs.title': 'Turvapeadete hinne',
+      'obs.title': 'HTTP turvapäiste skoor',
       'obs.score': 'skoor {score}/100',
       'obs.link': 'Vaata täisraportit',
       'links.ssllabs': 'Süvaanalüüs: SSL Labs',
@@ -117,6 +130,19 @@
       'detail.validFrom': 'Valid from',
       'detail.validUntil': 'Valid until',
       'detail.fingerprint': 'Fingerprint (SHA-256)',
+      'certdetails.title': 'Certificate technical details',
+      'certdetails.serial': 'Serial number',
+      'certdetails.subject': 'Subject (DN)',
+      'certdetails.algorithm': 'Signature algorithm',
+      'certdetails.key': 'Public key',
+      'certdetails.pemToggle': 'Show certificate PEM',
+      'certdetails.copy': 'Copy PEM',
+      'certdetails.copied': 'Copied!',
+      'certdetails.precert': 'precertificate (precert)',
+      'timeline.title': 'Issuance history',
+      'timeline.summary': '{n} issuances in the last 12 months',
+      'timeline.issuers': '{n} issuers',
+      'timeline.note': 'Certificates were issued by several CAs in the past year:',
       'sans.title': 'Covered hostnames ({n})',
       'sans.more': 'Show all ({n})',
       'sans.less': 'Show fewer',
@@ -169,6 +195,12 @@
     gaugeLabel: $('gauge-label'), gaugeCaption: $('gauge-caption'),
     detailIssuer: $('detail-issuer'), detailFrom: $('detail-from'),
     detailUntil: $('detail-until'), detailFp: $('detail-fp'),
+    certDetails: $('cert-details'), certSerial: $('cert-serial'),
+    certSubject: $('cert-subject'), certSignature: $('cert-signature'),
+    certKey: $('cert-key'), certPem: $('cert-pem'), certKind: $('cert-kind'),
+    copyPem: $('copy-pem'),
+    timeline: $('timeline'), timelineSummary: $('timeline-summary'),
+    timelineTrack: $('timeline-track'), timelineNote: $('timeline-note'),
     sanTitle: $('san-title'), sanList: $('san-list'), sanToggle: $('san-toggle'),
     badges: $('badges'),
     obs: $('obs'), obsGrade: $('obs-grade'), obsScore: $('obs-score'), obsLink: $('obs-link'),
@@ -207,6 +239,214 @@
     try {
       return new Intl.DateTimeFormat(lang === 'et' ? 'et-EE' : 'en-GB', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(ms));
     } catch { return new Date(ms).toISOString().slice(0, 10); }
+  }
+
+  function fmtShortDate(ms) {
+    try {
+      return new Intl.DateTimeFormat(lang === 'et' ? 'et-EE' : 'en-GB', { day: 'numeric', month: 'short', year: '2-digit' }).format(new Date(ms));
+    } catch { return new Date(ms).toISOString().slice(0, 10); }
+  }
+
+  /* ---------- Minimaalne ASN.1 / X.509 parser (ilma väliste teekideta) ---------- */
+
+  // Levinud OID-id: algoritmid, kõverad ja DN-i atribuudid
+  const OIDS = {
+    '1.2.840.113549.1.1.1': 'RSA',
+    '1.2.840.113549.1.1.5': 'SHA-1 with RSA',
+    '1.2.840.113549.1.1.11': 'SHA-256 with RSA',
+    '1.2.840.113549.1.1.12': 'SHA-384 with RSA',
+    '1.2.840.113549.1.1.13': 'SHA-512 with RSA',
+    '1.2.840.10045.4.3.2': 'ECDSA with SHA-256',
+    '1.2.840.10045.4.3.3': 'ECDSA with SHA-384',
+    '1.2.840.10045.4.3.4': 'ECDSA with SHA-512',
+    '1.3.101.112': 'Ed25519',
+    '1.3.101.113': 'Ed448',
+    '1.2.840.10045.2.1': 'EC public key',
+    '1.2.840.10045.3.1.7': 'P-256 (prime256v1)',
+    '1.3.132.0.34': 'P-384 (secp384r1)',
+    '1.3.132.0.35': 'P-521 (secp521r1)',
+    '2.5.4.3': 'CN', '2.5.4.4': 'SN', '2.5.4.5': 'serialNumber',
+    '2.5.4.6': 'C', '2.5.4.7': 'L', '2.5.4.8': 'ST',
+    '2.5.4.9': 'STREET', '2.5.4.10': 'O', '2.5.4.11': 'OU',
+    '2.5.4.97': 'organizationIdentifier',
+  };
+
+  function base64ToBytes(b64) {
+    try {
+      const s = atob(b64);
+      const out = new Uint8Array(s.length);
+      for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+      return out;
+    } catch { return null; }
+  }
+
+  function toPem(b64) {
+    const lines = String(b64).match(/.{1,64}/g) || [];
+    return '-----BEGIN CERTIFICATE-----\n' + lines.join('\n') + '\n-----END CERTIFICATE-----';
+  }
+
+  function derReader(bytes) {
+    let pos = 0;
+    return {
+      readTLV() {
+        if (pos + 2 > bytes.length) return null;
+        const tag = bytes[pos++];
+        let len = bytes[pos++];
+        if (len & 0x80) {
+          const n = len & 0x7f;
+          if (n === 0 || n > 4 || pos + n > bytes.length) return null;
+          len = 0;
+          for (let i = 0; i < n; i++) len = (len << 8) | bytes[pos++];
+        }
+        if (!Number.isFinite(len) || len < 0 || pos + len > bytes.length) return null;
+        const value = bytes.subarray(pos, pos + len);
+        pos += len;
+        return { tag, value };
+      },
+    };
+  }
+
+  function derOid(value) {
+    if (!value || !value.length) return '';
+    const nums = [];
+    let acc = 0;
+    for (const b of value) {
+      acc = acc * 128 + (b & 0x7f);
+      if ((b & 0x80) === 0) { nums.push(acc); acc = 0; }
+    }
+    const first = nums.length ? nums.shift() : 0;
+    const a = Math.min(Math.floor(first / 40), 2);
+    return [a, first - a * 40, ...nums].join('.');
+  }
+
+  function derIntHex(value) {
+    let hex = '';
+    for (const b of value) hex += b.toString(16).padStart(2, '0');
+    return hex.replace(/^0+/, '') || '0';
+  }
+
+  function derText(tlv) {
+    if (!tlv) return '';
+    if (tlv.tag === 0x0c && typeof TextDecoder !== 'undefined') {
+      try { return new TextDecoder('utf-8').decode(tlv.value); } catch { /* edasi */ }
+    }
+    let s = '';
+    for (const b of tlv.value) s += String.fromCharCode(b);
+    return s;
+  }
+
+  function parseName(tlv) {
+    if (!tlv || tlv.tag !== 0x30) return '–';
+    const r = derReader(tlv.value);
+    const parts = [];
+    let set;
+    while ((set = r.readTLV())) {
+      if (set.tag !== 0x31) continue;
+      const sr = derReader(set.value);
+      let attr;
+      while ((attr = sr.readTLV())) {
+        if (attr.tag !== 0x30) continue;
+        const ar = derReader(attr.value);
+        const oidTLV = ar.readTLV(), valTLV = ar.readTLV();
+        if (!oidTLV || !valTLV) continue;
+        const oid = derOid(oidTLV.value);
+        parts.push((OIDS[oid] || oid) + '=' + derText(valTLV));
+      }
+    }
+    return parts.length ? parts.join(', ') : '–';
+  }
+
+  function parseAlgorithm(tlv) {
+    if (!tlv || tlv.tag !== 0x30) return null;
+    const r = derReader(tlv.value);
+    const oidTLV = r.readTLV();
+    if (!oidTLV) return null;
+    const oid = derOid(oidTLV.value);
+    return { oid, name: OIDS[oid] || oid };
+  }
+
+  function bitLength(bytes) {
+    let i = 0;
+    while (i < bytes.length && bytes[i] === 0) i++;
+    if (i >= bytes.length) return 0;
+    return (bytes.length - i - 1) * 8 + (32 - Math.clz32(bytes[i]));
+  }
+
+  function parseX509(b64) {
+    const bytes = base64ToBytes(b64);
+    if (!bytes) return null;
+    try {
+      const cert = derReader(bytes).readTLV();
+      if (!cert || cert.tag !== 0x30) return null;
+      const cr = derReader(cert.value);
+      const tbs = cr.readTLV();
+      const sigOuter = cr.readTLV();
+      if (!tbs || tbs.tag !== 0x30 || !sigOuter) return null;
+
+      const tr = derReader(tbs.value);
+      let tlv = tr.readTLV();
+      if (tlv && tlv.tag === 0xa0) tlv = tr.readTLV(); // [0] EXPLICIT version
+      const serialTLV = tlv;
+      const sigTbs = tr.readTLV();
+      const issuerTLV = tr.readTLV();
+      tr.readTLV(); // validity
+      const subjectTLV = tr.readTLV();
+      const spkiTLV = tr.readTLV();
+
+      const sig = parseAlgorithm(sigOuter) || parseAlgorithm(sigTbs);
+      let key = '–';
+      if (spkiTLV && spkiTLV.tag === 0x30) {
+        const sr = derReader(spkiTLV.value);
+        const algTLV = sr.readTLV();
+        const bitTLV = sr.readTLV();
+        const alg = parseAlgorithm(algTLV);
+        if (alg) {
+          if (alg.oid === '1.2.840.113549.1.1.1') { // RSA
+            let bits = 0;
+            if (bitTLV && bitTLV.value.length > 1) {
+              const kr = derReader(bitTLV.value.subarray(1)); // esimene bait = kasutamata bitid
+              const seq = kr.readTLV();                       // RSAPublicKey SEQUENCE
+              if (seq && seq.tag === 0x30) {
+                const sr = derReader(seq.value);
+                const mod = sr.readTLV();                     // modulus INTEGER
+                if (mod && mod.tag === 0x02) bits = bitLength(mod.value);
+              }
+            }
+            key = 'RSA' + (bits ? '-' + bits : '');
+          } else if (alg.oid === '1.2.840.10045.2.1') { // EC
+            const ar = derReader(algTLV.value);
+            ar.readTLV();
+            const curveTLV = ar.readTLV();
+            const curve = curveTLV ? (OIDS[derOid(curveTLV.value)] || derOid(curveTLV.value)) : '';
+            key = 'ECDSA' + (curve ? ' · ' + curve : '');
+          } else {
+            key = alg.name;
+          }
+        }
+      }
+
+      return {
+        serial: serialTLV ? derIntHex(serialTLV.value) : '–',
+        issuerDn: parseName(issuerTLV),
+        subjectDn: parseName(subjectTLV),
+        signature: sig ? sig.name : '–',
+        key,
+      };
+    } catch { return null; }
+  }
+
+  function buildTimeline(rows) {
+    if (!Array.isArray(rows) || !rows.length) return null;
+    const items = rows.map((r) => ({
+      ts: crtDate(r.not_before),
+      issuer: parseCn(r.issuer_name),
+    })).filter((x) => Number.isFinite(x.ts));
+    if (!items.length) return null;
+    items.sort((a, b) => b.ts - a.ts);
+    const since = Date.now() - 365 * 864e5;
+    const recent = items.filter((x) => x.ts >= since);
+    const issuers = [...new Set(recent.map((x) => x.issuer).filter(Boolean))];
+    return { recentCount: recent.length, issuers, items: items.slice(0, 6) };
   }
 
   /* ---------- i18n rakendamine ---------- */
@@ -286,6 +526,8 @@
       issuer: (r.issuer && (r.issuer.friendly_name || parseCn(r.issuer.name))) || null,
       revoked: r.revoked === true,
       sha256: r.cert_sha256 || null,
+      pemData: (r.cert && typeof r.cert.data === 'string') ? r.cert.data : null,
+      certType: (r.cert && r.cert.type) || null,
     };
   }
 
@@ -293,6 +535,7 @@
     const params = new URLSearchParams({ domain: host, include_subdomains: subdomains ? 'true' : 'false' });
     params.append('expand', 'dns_names');
     params.append('expand', 'issuer');
+    params.append('expand', 'cert');
     const rows = await fetchJson(CS_API + '?' + params.toString(), { timeout: CONFIG.timeouts.certspotter });
     if (!Array.isArray(rows)) return [];
     return rows.map(normCs).filter((c) => Number.isFinite(c.notBefore) && Number.isFinite(c.notAfter));
@@ -485,6 +728,8 @@
     }
 
     renderSans(c.dnsNames, host);
+    renderCertDetails(c);
+    renderTimeline(data.timeline || null);
 
     // Tühistamise märge
     els.badges.textContent = '';
@@ -532,6 +777,48 @@
       if (d && d.grade && typeof d.score === 'number') { d.host = host; return d; }
     } catch { /* boonusfunktsioon, vaiki viga */ }
     return null;
+  }
+
+  function renderCertDetails(cert) {
+    const parsed = cert.pemData ? parseX509(cert.pemData) : null;
+    if (!parsed) { els.certDetails.hidden = true; return; }
+    els.certSerial.textContent = parsed.serial;
+    els.certSubject.textContent = parsed.subjectDn;
+    els.certSignature.textContent = parsed.signature;
+    els.certKey.textContent = parsed.key;
+    els.certPem.textContent = toPem(cert.pemData);
+    els.certKind.textContent = cert.certType === 'precert' ? t('certdetails.precert') : '';
+    els.copyPem.textContent = t('certdetails.copy');
+    els.certDetails.hidden = false;
+  }
+
+  function renderTimeline(tl) {
+    if (!tl || !tl.items.length) { els.timeline.hidden = true; return; }
+    els.timelineSummary.textContent = t('timeline.summary', { n: tl.recentCount }) +
+      (tl.issuers.length > 1 ? ' · ' + t('timeline.issuers', { n: tl.issuers.length }) : '');
+    els.timelineTrack.textContent = '';
+    for (const item of tl.items) {
+      const point = document.createElement('div');
+      point.className = 'timeline-point';
+      const dot = document.createElement('span');
+      dot.className = 'timeline-dot';
+      const date = document.createElement('span');
+      date.className = 'timeline-date';
+      date.textContent = fmtShortDate(item.ts);
+      const issuer = document.createElement('span');
+      issuer.className = 'timeline-issuer';
+      issuer.textContent = item.issuer || '–';
+      issuer.title = item.issuer || '';
+      point.append(dot, date, issuer);
+      els.timelineTrack.appendChild(point);
+    }
+    if (tl.issuers.length > 1) {
+      els.timelineNote.textContent = t('timeline.note') + ' ' + tl.issuers.join(', ');
+      els.timelineNote.hidden = false;
+    } else {
+      els.timelineNote.hidden = true;
+    }
+    els.timeline.hidden = false;
   }
 
   /* ---------- Ajalugu ---------- */
@@ -591,6 +878,11 @@
 
     showScan(host, t('scan.ct'));
 
+    // crt.sh käib algusest paralleelselt – ajatelg ja varuallikas kasutavad sama päringut
+    const crtshPromise = queryCrtsh(host)
+      .then((rows) => ({ ok: true, rows }))
+      .catch(() => ({ ok: false, rows: [] }));
+
     let entries = null;
     let source = null;
     let anySuccess = false;
@@ -614,18 +906,18 @@
       if (stale()) { els.btn.disabled = false; return; }
     }
 
-    // 3) crt.sh varuallikas
+    // 3) crt.sh varuallikas (juba käivitatud paralleelpäring)
     if (!entries) {
       showScan(host, t('scan.fallback'));
-      try {
-        const rows = await queryCrtsh(host);
-        anySuccess = true;
-        if (rows.length) { entries = rows; source = 'crt.sh'; }
-      } catch { /* edasi */ }
+      const crt = await crtshPromise;
       if (stale()) { els.btn.disabled = false; return; }
+      if (crt.ok) {
+        anySuccess = true;
+        if (crt.rows.length) { entries = crt.rows; source = 'crt.sh'; }
+      }
     }
 
-    // Turvapeadete hinne (ei blokeeri põhitulemust)
+    // HTTP turvapäiste skoor (ei blokeeri põhitulemust)
     const obsPromise = fetchObservatory(host);
 
     if (!anySuccess) {
@@ -637,13 +929,18 @@
       if (!picked.cert) {
         renderError({ type: 'notFound', host });
       } else {
-        const data = { host, cert: picked.cert, hasActive: picked.hasActive, source, obs: null };
+        const data = { host, cert: picked.cert, hasActive: picked.hasActive, source, obs: null, timeline: null };
         renderResult(data);
         addHistory(host, statusOf(picked.cert, picked.hasActive), daysLeftOf(picked.cert));
         obsPromise.then((d) => {
           if (stale()) return;
           data.obs = d;
           if (lastRender && lastRender.type === 'result' && lastRender.data.host === host) fillObservatory(d);
+        });
+        crtshPromise.then((crt) => {
+          if (stale() || !crt.ok) return;
+          data.timeline = buildTimeline(crt.rows);
+          if (lastRender && lastRender.type === 'result' && lastRender.data.host === host) renderTimeline(data.timeline);
         });
       }
     }
@@ -674,6 +971,26 @@
   const etBtn = $('lang-et'), enBtn = $('lang-en');
   if (etBtn) etBtn.addEventListener('click', () => setLang('et'));
   if (enBtn) enBtn.addEventListener('click', () => setLang('en'));
+
+  els.copyPem.addEventListener('click', async () => {
+    const text = els.certPem.textContent;
+    if (!text) return;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(text);
+      else throw new Error('clipboard unavailable');
+    } catch {
+      // Varumeetod: teksti valimine, et kasutaja saaks kopeerida ise
+      try {
+        const range = document.createRange();
+        range.selectNodeContents(els.certPem);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } catch { /* ignore */ }
+    }
+    els.copyPem.textContent = t('certdetails.copied');
+    setTimeout(() => { els.copyPem.textContent = t('certdetails.copy'); }, 1800);
+  });
 
   els.historyClear.addEventListener('click', () => {
     history = [];

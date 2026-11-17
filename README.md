@@ -23,6 +23,12 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
 2. **crt.sh** (varu) – kasutatakse, kui esimene allikas ei vasta.
 3. **MDN HTTP Observatory** (valikuline boonus) – turvapeadete hinne (A+…F).
    Keelamiseks muuda `app.js` failis `CONFIG.observatory` väärtuseks `false`.
+4. **Täielik sertifikaadivaade** – Cert Spotteri PEM-andmetest loetakse otse
+   brauseris (ASN.1 parser, ilma väliste teekideta) seerianumber, subjekt (DN),
+   allkirja algoritm ja avaliku võtme tüüp/suurus; PEM-i saab kopeerida.
+5. **Väljaandmise ajalugu** – crt.sh andmetest kuvatakse viimased 6 väljaannet
+   ajateljel, 12 kuu statistika ja märkus mitme eri väljaandja kohta. Ajalugu
+   laaditakse taustal ega blokeeri põhitulemust; rikke korral peidetakse.
 
 Täpseks kättesaamise analüüsiks (protokollid, šifrid, usaldusahel) suunab leht
 kasutaja SSL Labsi raportile.
