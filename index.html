@@ -110,10 +110,22 @@
           </div>
 
           <dl class="details">
-            <div class="detail"><dt data-i18n="detail.issuer">Väljaandja</dt><dd id="detail-issuer"></dd></div>
-            <div class="detail"><dt data-i18n="detail.validFrom">Kehtiv alates</dt><dd id="detail-from"></dd></div>
-            <div class="detail"><dt data-i18n="detail.validUntil">Kehtib kuni</dt><dd id="detail-until"></dd></div>
-            <div class="detail"><dt data-i18n="detail.fingerprint">Sõrmejälg (SHA-256)</dt><dd id="detail-fp" class="mono"></dd></div>
+            <div class="detail">
+              <dt data-i18n="detail.issuer">Väljaandja</dt><dd id="detail-issuer"></dd>
+              <small class="field-hint" data-i18n="hint.issuer">Asutus, mis sertifikaadi välja andis ja allkirjastas.</small>
+            </div>
+            <div class="detail">
+              <dt data-i18n="detail.validFrom">Kehtiv alates</dt><dd id="detail-from"></dd>
+              <small class="field-hint" data-i18n="hint.validFrom">Sellest kuupäevast on sertifikaat kehtiv.</small>
+            </div>
+            <div class="detail">
+              <dt data-i18n="detail.validUntil">Kehtib kuni</dt><dd id="detail-until"></dd>
+              <small class="field-hint" data-i18n="hint.validUntil">Pärast seda näitab brauser hoiatuslehte.</small>
+            </div>
+            <div class="detail">
+              <dt data-i18n="detail.fingerprint">Sõrmejälg (SHA-256)</dt><dd id="detail-fp" class="mono"></dd>
+              <small class="field-hint" data-i18n="hint.fingerprint">Unikaalne identifikaator sertifikaadi tuvastamiseks.</small>
+            </div>
           </dl>
         </div>
 
@@ -126,11 +138,17 @@
             <div class="detail"><dt data-i18n="certdetails.key">Avalik võti</dt><dd id="cert-key"></dd></div>
           </dl>
           <details class="pem-block">
-            <summary data-i18n="certdetails.pemToggle">Näita sertifikaadi PEM-i</summary>
+            <summary data-i18n="certdetails.pemToggle">Näita sertifikaadi PEM-i ja sertifikaadi ahelat</summary>
             <div class="pem-head">
               <span id="cert-kind" class="pem-kind"></span>
-              <button type="button" class="copy-btn" id="copy-pem" data-i18n="certdetails.copy">Kopeeri PEM</button>
+              <div class="pem-actions">
+                <button type="button" class="copy-btn" id="copy-pem" data-i18n="certdetails.copy">Kopeeri PEM</button>
+                <button type="button" class="copy-btn" id="copy-chain" data-i18n="certdetails.copyChain">Kopeeri täielik ahel</button>
+                <button type="button" class="copy-btn dl-btn" id="download-pem" data-i18n="certdetails.downloadPem">Laadi alla PEM</button>
+                <button type="button" class="copy-btn dl-btn" id="download-chain" data-i18n="certdetails.downloadChain">Laadi alla täielik ahel</button>
+              </div>
             </div>
+            <p id="chain-status" class="chain-status" hidden></p>
             <pre id="cert-pem" class="pem-code"></pre>
           </details>
         </section>
@@ -221,7 +239,7 @@
           </details>
           <details class="faq-item">
             <summary data-i18n="faq2.q">Kust andmed tulevad?</summary>
-            <p data-i18n="faq2.a">Sertifikaadi andmed loetakse Certificate Transparency logidest teenuse Cert Spotter kaudu (varuallikaks crt.sh) ja turvapeadete hinne tuleb MDN HTTP Observatoryst. Kõik päringud käivad otse sinu brauseris.</p>
+            <p data-i18n="faq2.a">Sertifikaadi andmed loetakse Certificate Transparency logidest teenuse Cert Spotter kaudu (varuallikaks crt.sh), HTTP turvapäiste skoor tuleb MDN HTTP Observatoryst ja täielik sertifikaadiahel Trustico SSL Toolsi kaudu. Kõik päringud käivad otse sinu brauseris.</p>
           </details>
           <details class="faq-item">
             <summary data-i18n="faq3.q">Miks kuvatud info või tegelikust erineda?</summary>
@@ -244,7 +262,7 @@
     <div class="container">
       <p class="footer-brand">ssl<em>.ee</em></p>
       <p class="footer-tagline" data-i18n="footer.tagline">Privaatsust austav SSL-sertifikaadi kontrollija – kõik päringud käivad sinu brauseris.</p>
-      <p class="footer-meta"><span data-i18n="footer.sources">Andmeallikad: Cert Spotter · crt.sh · MDN HTTP Observatory</span> · <span id="footer-year"></span></p>
+      <p class="footer-meta"><span data-i18n="footer.sources">Andmeallikad: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico</span> · <span id="footer-year"></span></p>
     </div>
   </footer>
 

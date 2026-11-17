@@ -1,7 +1,8 @@
 /* ssl.ee — SSL-sertifikaadi kontrollija
  * Staatiline leht: kõik päringud käivad kasutaja brauseris.
  * Andmeallikad: Cert Spotter (CT logid, primaarne), crt.sh (varu),
- * MDN HTTP Observatory (turvapeadete hinne, valikuline boonus).
+ * MDN HTTP Observatory (HTTP turvapäiste skoor, boonus),
+ * Trustico SSL Tools (täieliku ahela allalaadimine).
  */
 (() => {
   'use strict';
@@ -11,13 +12,15 @@
     warnDays: 30,        // alla selle jäänud päevade arv = hoiatus
     sanPreview: 8,       // mitu domeeni enne "näita kõiki"
     historyMax: 8,
-    timeouts: { certspotter: 15000, crtsh: 30000, observatory: 20000 },
-    observatory: true,   // turvapeadete hinne (MDN HTTP Observatory)
+    timeouts: { certspotter: 15000, crtsh: 30000, observatory: 20000, chain: 25000 },
+    observatory: true,   // HTTP turvapäiste skoor (MDN HTTP Observatory)
+    chain: true,         // täieliku sertifikaadiahela allalaadimine (Trustico SSL Tools)
   };
 
   const CS_API = 'https://api.certspotter.com/v1/issuances';
   const CRTSH_API = 'https://crt.sh/';
   const OBS_API = 'https://observatory-api.mdn.mozilla.net/api/v2/scan';
+  const CHAIN_API = 'https://tools.trustico.com/api/chain/analyze-url';
   const SSLLABS_URL = 'https://www.ssllabs.com/ssltest/analyze.html?d=';
 
   /* ---------- i18n ---------- */
@@ -56,10 +59,21 @@
       'certdetails.subject': 'Subjekt (DN)',
       'certdetails.algorithm': 'Allkirja algoritm',
       'certdetails.key': 'Avalik võti',
-      'certdetails.pemToggle': 'Näita sertifikaadi PEM-i',
+      'certdetails.pemToggle': 'Näita sertifikaadi PEM-i ja sertifikaadi ahelat',
       'certdetails.copy': 'Kopeeri PEM',
       'certdetails.copied': 'Kopeeritud!',
+      'certdetails.copyFail': 'Kopeerimine ei õnnestunud.',
+      'certdetails.copyChain': 'Kopeeri täielik ahel',
+      'certdetails.copyingChain': 'Kopeerin ahelat…',
+      'certdetails.chainCopied': 'Täielik ahel kopeeritud ({n} sertifikaati).',
+      'certdetails.downloadPem': 'Laadi alla PEM',
+      'certdetails.pemOk': 'Sertifikaadi PEM alla laaditud.',
       'certdetails.precert': 'eel-sertifikaat (precert)',
+      'certdetails.downloadChain': 'Laadi alla täielik ahel',
+      'certdetails.downloading': 'Laadin ahelat…',
+      'certdetails.chainOk': 'Täielik ahel alla laaditud ({n} sertifikaati).',
+      'certdetails.chainFail': 'Ahela laadimine ei õnnestunud. Proovi hiljem uuesti.',
+      'certdetails.chainNote': 'Ahel pärineb serveri reaalselt saadetud sertifikaatidest (Trustico SSL Tools).',
       'timeline.title': 'Väljaandmise ajalugu',
       'timeline.summary': 'Viimase 12 kuu jooksul {n} väljaannet',
       'timeline.issuers': '{n} väljaandjat',
@@ -91,7 +105,7 @@
       'faq1.q': 'Mida see leht teeb?',
       'faq1.a': 'ssl.ee kontrollib domeeni SSL/TLS-sertifikaadi kehtivust: kuni see kehtib, kes selle välja andis ja milliseid aadresse see kaitseb. Piisab domeeninimest – vastus on olemas mõne sekundiga.',
       'faq2.q': 'Kust andmed tulevad?',
-      'faq2.a': 'Sertifikaadi andmed loetakse Certificate Transparency logidest teenuse Cert Spotter kaudu (varuallikaks crt.sh) ja turvapeadete hinne tuleb MDN HTTP Observatoryst. Kõik päringud käivad otse sinu brauseris.',
+      'faq2.a': 'Sertifikaadi andmed loetakse Certificate Transparency logidest teenuse Cert Spotter kaudu (varuallikaks crt.sh), HTTP turvapäiste skoor tuleb MDN HTTP Observatoryst ja täielik sertifikaadiahel Trustico SSL Toolsi kaudu. Kõik päringud käivad otse sinu brauseris.',
       'faq3.q': 'Miks kuvatud info võib tegelikust erineda?',
       'faq3.a': 'CT logidest kuvatakse uusim välja antud sertifikaat. Server või CDN teenindab mõnikord varasemat või muud sertifikaati – täielikuks analüüsiks (sh protokollid ja šifrid) kasuta allpool olevat SSL Labsi linki.',
       'faq4.q': 'Mis tähendab „aegub varsti“?',
@@ -99,7 +113,7 @@
       'faq5.q': 'Kas kasutamine on tasuta?',
       'faq5.a': 'Jah. ssl.ee on tasuta, ei nõua registreerimist ega kogu isikuandmeid. Küll võivad kehtida andmeallikate endi päringupiirangud.',
       'footer.tagline': 'Privaatsust austav SSL-sertifikaadi kontrollija – kõik päringud käivad sinu brauseris.',
-      'footer.sources': 'Andmeallikad: Cert Spotter · crt.sh · MDN HTTP Observatory',
+      'footer.sources': 'Andmeallikad: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico',
     },
     en: {
       'meta.title': 'ssl.ee — SSL certificate checker',
@@ -135,10 +149,21 @@
       'certdetails.subject': 'Subject (DN)',
       'certdetails.algorithm': 'Signature algorithm',
       'certdetails.key': 'Public key',
-      'certdetails.pemToggle': 'Show certificate PEM',
+      'certdetails.pemToggle': 'Show certificate PEM and certificate chain',
       'certdetails.copy': 'Copy PEM',
       'certdetails.copied': 'Copied!',
+      'certdetails.copyFail': 'Could not copy.',
+      'certdetails.copyChain': 'Copy full chain',
+      'certdetails.copyingChain': 'Copying chain…',
+      'certdetails.chainCopied': 'Full chain copied ({n} certificates).',
+      'certdetails.downloadPem': 'Download PEM',
+      'certdetails.pemOk': 'Certificate PEM downloaded.',
       'certdetails.precert': 'precertificate (precert)',
+      'certdetails.downloadChain': 'Download full chain',
+      'certdetails.downloading': 'Downloading chain…',
+      'certdetails.chainOk': 'Full chain downloaded ({n} certificates).',
+      'certdetails.chainFail': 'Could not load the chain. Please try again later.',
+      'certdetails.chainNote': 'The chain comes from the certificates actually served by the server (Trustico SSL Tools).',
       'timeline.title': 'Issuance history',
       'timeline.summary': '{n} issuances in the last 12 months',
       'timeline.issuers': '{n} issuers',
@@ -170,7 +195,7 @@
       'faq1.q': 'What does this site do?',
       'faq1.a': 'ssl.ee checks a domain\'s SSL/TLS certificate validity: how long it is valid, who issued it, and which hostnames it protects. Just type a domain name – you get an answer within seconds.',
       'faq2.q': 'Where does the data come from?',
-      'faq2.a': 'Certificate data is read from Certificate Transparency logs via Cert Spotter (with crt.sh as backup); the security-header score comes from MDN HTTP Observatory. All requests run directly in your browser.',
+      'faq2.a': 'Certificate data is read from Certificate Transparency logs via Cert Spotter (with crt.sh as backup); the HTTP security-header score comes from MDN HTTP Observatory and the full certificate chain from Trustico SSL Tools. All requests run directly in your browser.',
       'faq3.q': 'Why might the information differ from reality?',
       'faq3.a': 'We show the most recently issued certificate from the CT logs. A server or CDN may sometimes serve a different (e.g. older) certificate – for a full analysis (protocols and ciphers included) use the SSL Labs link below.',
       'faq4.q': 'What does "expiring soon" mean?',
@@ -178,7 +203,7 @@
       'faq5.q': 'Is it free to use?',
       'faq5.a': 'Yes. ssl.ee is free, requires no sign-up and collects no personal data. The upstream data sources may apply their own rate limits.',
       'footer.tagline': 'A privacy-respecting SSL certificate checker – every query runs in your browser.',
-      'footer.sources': 'Data sources: Cert Spotter · crt.sh · MDN HTTP Observatory',
+      'footer.sources': 'Data sources: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico',
     },
   };
 
@@ -198,7 +223,8 @@
     certDetails: $('cert-details'), certSerial: $('cert-serial'),
     certSubject: $('cert-subject'), certSignature: $('cert-signature'),
     certKey: $('cert-key'), certPem: $('cert-pem'), certKind: $('cert-kind'),
-    copyPem: $('copy-pem'),
+    copyPem: $('copy-pem'), copyChain: $('copy-chain'), downloadPem: $('download-pem'),
+    downloadChain: $('download-chain'), chainStatus: $('chain-status'),
     timeline: $('timeline'), timelineSummary: $('timeline-summary'),
     timelineTrack: $('timeline-track'), timelineNote: $('timeline-note'),
     sanTitle: $('san-title'), sanList: $('san-list'), sanToggle: $('san-toggle'),
@@ -495,7 +521,10 @@
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), o.timeout || 15000);
     try {
-      const res = await fetch(url, { method: o.method || 'GET', signal: ctrl.signal, cache: 'no-store' });
+      const res = await fetch(url, {
+        method: o.method || 'GET', headers: o.headers, body: o.body,
+        signal: ctrl.signal, cache: 'no-store',
+      });
       if (!res.ok) { const e = new Error('HTTP ' + res.status); e.status = res.status; throw e; }
       return await res.json();
     } finally { clearTimeout(timer); }
@@ -789,7 +818,109 @@
     els.certPem.textContent = toPem(cert.pemData);
     els.certKind.textContent = cert.certType === 'precert' ? t('certdetails.precert') : '';
     els.copyPem.textContent = t('certdetails.copy');
+    els.copyChain.textContent = t('certdetails.copyChain');
+    els.downloadChain.title = t('certdetails.chainNote');
+    showChainStatus('');
     els.certDetails.hidden = false;
+  }
+
+  function showChainStatus(msg, kind) {
+    els.chainStatus.textContent = msg || '';
+    els.chainStatus.className = 'chain-status' + (kind ? ' ' + kind : '');
+    els.chainStatus.hidden = !msg;
+  }
+
+  async function fetchChain(host) {
+    const d = await fetchJson(CHAIN_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: 'https://' + host }),
+      timeout: CONFIG.timeouts.chain,
+    });
+    if (!d || d.success !== true) return null;
+    const chain = d.data && d.data.chain;
+    if (!Array.isArray(chain)) return null;
+    const pems = chain
+      .map((x) => x && x.certificate)
+      .filter((p) => typeof p === 'string' && p.indexOf('BEGIN CERTIFICATE') !== -1);
+    return pems.length ? pems : null;
+  }
+
+  async function copyText(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+      throw new Error('clipboard unavailable');
+    } catch {
+      // Varumeetod: ajutine tekstiväli, et kopeerimine töötaks ka HTTP-lehel
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+      } catch { return false; }
+    }
+  }
+
+  function savePemFile(text, filename) {
+    const blob = new Blob([text.replace(/\s+$/, '') + '\n'], { type: 'application/x-pem-file' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+
+  function downloadSinglePem(host) {
+    const text = els.certPem.textContent;
+    if (!text) return;
+    savePemFile(text, (host || 'certificate') + '.pem');
+    showChainStatus(t('certdetails.pemOk'), 'ok');
+  }
+
+  async function copyChain(host) {
+    if (!CONFIG.chain || !host) return;
+    els.copyChain.disabled = true;
+    showChainStatus(t('certdetails.copyingChain'));
+    try {
+      const pems = await fetchChain(host);
+      if (!pems) throw new Error('chain unavailable');
+      if (!await copyText(pems.join('\n'))) throw new Error('copy failed');
+      els.copyChain.textContent = t('certdetails.copied');
+      setTimeout(() => { els.copyChain.textContent = t('certdetails.copyChain'); }, 1800);
+      showChainStatus(t('certdetails.chainCopied', { n: pems.length }), 'ok');
+    } catch {
+      showChainStatus(t('certdetails.chainFail'), 'error');
+    } finally {
+      els.copyChain.disabled = false;
+    }
+  }
+
+  async function downloadChain(host) {
+    if (!CONFIG.chain || !host) return;
+    els.downloadChain.disabled = true;
+    showChainStatus(t('certdetails.downloading'));
+    try {
+      const pems = await fetchChain(host);
+      if (!pems) throw new Error('chain unavailable');
+      savePemFile(pems.join('\n'), host + '-full-chain.pem');
+      showChainStatus(t('certdetails.chainOk', { n: pems.length }), 'ok');
+    } catch {
+      showChainStatus(t('certdetails.chainFail'), 'error');
+    } finally {
+      els.downloadChain.disabled = false;
+    }
   }
 
   function renderTimeline(tl) {
@@ -975,21 +1106,24 @@
   els.copyPem.addEventListener('click', async () => {
     const text = els.certPem.textContent;
     if (!text) return;
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(text);
-      else throw new Error('clipboard unavailable');
-    } catch {
-      // Varumeetod: teksti valimine, et kasutaja saaks kopeerida ise
-      try {
-        const range = document.createRange();
-        range.selectNodeContents(els.certPem);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } catch { /* ignore */ }
-    }
-    els.copyPem.textContent = t('certdetails.copied');
+    const ok = await copyText(text);
+    els.copyPem.textContent = t(ok ? 'certdetails.copied' : 'certdetails.copyFail');
     setTimeout(() => { els.copyPem.textContent = t('certdetails.copy'); }, 1800);
+  });
+
+  els.copyChain.addEventListener('click', () => {
+    const host = lastRender && lastRender.type === 'result' ? lastRender.data.host : null;
+    if (host) copyChain(host);
+  });
+
+  els.downloadPem.addEventListener('click', () => {
+    const host = lastRender && lastRender.type === 'result' ? lastRender.data.host : null;
+    downloadSinglePem(host);
+  });
+
+  els.downloadChain.addEventListener('click', () => {
+    const host = lastRender && lastRender.type === 'result' ? lastRender.data.host : null;
+    if (host) downloadChain(host);
   });
 
   els.historyClear.addEventListener('click', () => {
