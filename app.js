@@ -54,6 +54,33 @@
       'detail.validFrom': 'Kehtiv alates',
       'detail.validUntil': 'Kehtib kuni',
       'detail.fingerprint': 'Sõrmejälg (SHA-256)',
+      'hint.issuer': 'Asutus, mis sertifikaadi välja andis ja allkirjastas.',
+      'hint.validFrom': 'Sellest kuupäevast on sertifikaat kehtiv.',
+      'hint.validUntil': 'Pärast seda näitab brauser hoiatuslehte.',
+      'hint.fingerprint': 'Unikaalne identifikaator sertifikaadi tuvastamiseks.',
+      'share.copyLink': 'Kopeeri jagatav link',
+      'share.copyResult': 'Kopeeri tulemus',
+      'share.linkCopied': 'Jagatav link kopeeritud!',
+      'share.resultCopied': 'Tulemus kopeeritud!',
+      'share.title': 'SSL-sertifikaadi kontroll',
+      'share.sans': 'Kaitstud domeenid',
+      'share.source': 'Andmed',
+      'learn.title': 'Sertifikaadi uuendamine ja tulemuse mõistmine',
+      'learn.fieldsTitle': 'Mida tulemus tähendab?',
+      'learn.glossIssuer': 'Väljaandja',
+      'learn.glossIssuerText': 'Asutus (CA), mis sertifikaadi välja andis ja digitaalselt allkirjastas – näiteks Let\'s Encrypt või Google Trust Services.',
+      'learn.glossValid': 'Kehtivusaeg',
+      'learn.glossValidText': 'Sertifikaat kehtib ainult märgitud ajavahemikul. Pärast lõppkuupäeva kuvab brauser hoiatuslehe.',
+      'learn.glossFp': 'Sõrmejälg',
+      'learn.glossFpText': 'Sertifikaadi unikaalne SHA-256 identifikaator, mille järgi saab kindlaks teha, kas server teenindab just seda sertifikaati.',
+      'learn.glossSan': 'Kaitstud domeenid',
+      'learn.glossSanText': 'Kõik aadressid, mille jaoks sertifikaat kehtib (SAN). Kui sinu aadressi seal pole, ilmub brauseris hoiatus.',
+      'learn.renewTitle': 'Kuidas sertifikaati uuendada?',
+      'learn.renewIntro': 'Enamikul juhtudel piisab Let\'s Encrypti tasuta sertifikaadist ja Certbotist. Uuenda sertifikaat vähemalt 30 päeva enne aegumist.',
+      'learn.step1': 'Paigalda Certbot: <code>sudo apt install certbot python3-certbot-nginx</code> (Nginx) või <code>python3-certbot-apache</code> (Apache).',
+      'learn.step2': 'Hangi ja paigalda sertifikaat: <code>sudo certbot --nginx -d sinudomeen.ee</code> (või <code>--apache</code>).',
+      'learn.step3': 'Kontrolli automaatset uuendamist: <code>sudo certbot renew --dry-run</code>. Certbot lisab ise ajastatud ülesande.',
+      'learn.tip': 'Nipp: kui kasutad Cloudflare\'i, saab SSL-i hallata ka selle juhtpaneelilt – siis ei pea Certboti serveris käitama.',
       'certdetails.title': 'Sertifikaadi tehnilised andmed',
       'certdetails.serial': 'Seerianumber',
       'certdetails.subject': 'Subjekt (DN)',
@@ -144,6 +171,33 @@
       'detail.validFrom': 'Valid from',
       'detail.validUntil': 'Valid until',
       'detail.fingerprint': 'Fingerprint (SHA-256)',
+      'hint.issuer': 'The authority (CA) that issued and signed the certificate.',
+      'hint.validFrom': 'The certificate is valid from this date onward.',
+      'hint.validUntil': 'After this date the browser shows a warning.',
+      'hint.fingerprint': 'Unique identifier used to identify this exact certificate.',
+      'share.copyLink': 'Copy share link',
+      'share.copyResult': 'Copy result',
+      'share.linkCopied': 'Share link copied!',
+      'share.resultCopied': 'Result copied!',
+      'share.title': 'SSL certificate check',
+      'share.sans': 'Covered hostnames',
+      'share.source': 'Data',
+      'learn.title': 'Renewing a certificate and understanding the result',
+      'learn.fieldsTitle': 'What the result means',
+      'learn.glossIssuer': 'Issuer',
+      'learn.glossIssuerText': 'The certificate authority (CA) that issued and digitally signed the certificate – for example Let\'s Encrypt or Google Trust Services.',
+      'learn.glossValid': 'Validity',
+      'learn.glossValidText': 'A certificate is valid only during the stated period. After the end date the browser displays a warning page.',
+      'learn.glossFp': 'Fingerprint',
+      'learn.glossFpText': 'A unique SHA-256 identifier that lets you verify the server is serving exactly this certificate.',
+      'learn.glossSan': 'Covered hostnames',
+      'learn.glossSanText': 'All addresses the certificate covers (SAN). If your address is not listed, the browser will show a warning.',
+      'learn.renewTitle': 'How to renew a certificate',
+      'learn.renewIntro': 'In most cases a free Let\'s Encrypt certificate and Certbot are enough. Renew at least 30 days before expiry.',
+      'learn.step1': 'Install Certbot: <code>sudo apt install certbot python3-certbot-nginx</code> (Nginx) or <code>python3-certbot-apache</code> (Apache).',
+      'learn.step2': 'Obtain and install the certificate: <code>sudo certbot --nginx -d example.com</code> (or <code>--apache</code>).',
+      'learn.step3': 'Test automatic renewal: <code>sudo certbot renew --dry-run</code>. Certbot sets up the scheduled task for you.',
+      'learn.tip': 'Tip: if you use Cloudflare, you can manage SSL from its dashboard instead – no Certbot needed on the server.',
       'certdetails.title': 'Certificate technical details',
       'certdetails.serial': 'Serial number',
       'certdetails.subject': 'Subject (DN)',
@@ -231,6 +285,7 @@
     badges: $('badges'),
     obs: $('obs'), obsGrade: $('obs-grade'), obsScore: $('obs-score'), obsLink: $('obs-link'),
     sourceNote: $('source-note'), linkSsllabs: $('link-ssllabs'), linkCrtsh: $('link-crtsh'),
+    shareLink: $('share-link'), copyResult: $('copy-result'), shareStatus: $('share-status'),
     history: $('history'), historyList: $('history-list'), historyClear: $('history-clear'),
     footerYear: $('footer-year'),
   };
@@ -509,6 +564,7 @@
     els.scan.hidden = true;
     els.error.hidden = true;
     els.card.hidden = true;
+    showShareStatus('');
   }
 
   function smoothScroll(el) {
@@ -806,6 +862,69 @@
       if (d && d.grade && typeof d.score === 'number') { d.host = host; return d; }
     } catch { /* boonusfunktsioon, vaiki viga */ }
     return null;
+  }
+
+  /* ---------- Jagatav link ja tulemuse kopeerimine ---------- */
+
+  function showShareStatus(msg, isError) {
+    els.shareStatus.textContent = msg || '';
+    els.shareStatus.className = 'share-status' + (isError ? ' error' : '');
+    els.shareStatus.hidden = !msg;
+  }
+
+  function shareUrl(host) {
+    return location.origin + location.pathname + '?d=' + encodeURIComponent(host);
+  }
+
+  function buildResultText(data) {
+    const { host, cert: c, source, hasActive } = data;
+    const now = Date.now();
+    const daysLeft = Math.ceil((c.notAfter - now) / 864e5);
+    const daysSince = Math.floor((now - c.notAfter) / 864e5);
+    const status = (!hasActive || c.notAfter < now) ? 'expired'
+      : (daysLeft <= CONFIG.warnDays ? 'expiring' : 'valid');
+    const statusLine = status === 'expired'
+      ? (daysSince <= 0 ? t('chip.expiredToday') : t('chip.expiredAgo', { n: daysSince }))
+      : t('status.' + status) + ' — ' + daysText(Math.max(daysLeft, 0)) + ' ' + t('gauge.caption.valid');
+    const names = Array.isArray(c.dnsNames) ? c.dnsNames : [];
+    const sans = names.slice(0, 12).join(', ') + (names.length > 12 ? '…' : '');
+    const fp = c.sha256 ? c.sha256.toLowerCase() : '–';
+    return [
+      t('share.title') + ': ' + host,
+      '',
+      statusLine,
+      t('detail.issuer') + ': ' + (c.issuer || '–'),
+      t('detail.validFrom') + ': ' + fmtDate(c.notBefore),
+      t('detail.validUntil') + ': ' + fmtDate(c.notAfter),
+      t('share.sans') + ': ' + (sans || '–'),
+      t('detail.fingerprint') + ': ' + fp,
+      t('share.source') + ': ' + (source || '–'),
+      '',
+      shareUrl(host),
+    ].join('\n');
+  }
+
+  async function copyShareLink(host) {
+    if (!host) return;
+    const url = shareUrl(host);
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: t('share.title'), url });
+        showShareStatus(t('share.linkCopied'));
+        return;
+      } catch (e) {
+        if (e && (e.name === 'AbortError' || e.name === 'Cancel')) return; // kasutaja loobus
+        // muu viga → kopeerime lingi ise
+      }
+    }
+    const ok = await copyText(url);
+    showShareStatus(t(ok ? 'share.linkCopied' : 'certdetails.copyFail'), !ok);
+  }
+
+  async function copyCurrentResult() {
+    if (!lastRender || lastRender.type !== 'result') return;
+    const ok = await copyText(buildResultText(lastRender.data));
+    showShareStatus(t(ok ? 'share.resultCopied' : 'certdetails.copyFail'), !ok);
   }
 
   function renderCertDetails(cert) {
@@ -1116,6 +1235,13 @@
     if (host) copyChain(host);
   });
 
+  els.shareLink.addEventListener('click', () => {
+    const host = lastRender && lastRender.type === 'result' ? lastRender.data.host : null;
+    copyShareLink(host);
+  });
+
+  els.copyResult.addEventListener('click', copyCurrentResult);
+
   els.downloadPem.addEventListener('click', () => {
     const host = lastRender && lastRender.type === 'result' ? lastRender.data.host : null;
     downloadSinglePem(host);
@@ -1136,4 +1262,13 @@
 
   /* ---------- Käivitus ---------- */
   applyI18n();
+
+  // Jagatav link: ?d=domeen.ee käivitab kontrolli automaatselt
+  try {
+    const shared = new URLSearchParams(location.search).get('d');
+    if (shared) {
+      els.input.value = shared;
+      runCheck(shared);
+    }
+  } catch { /* ignore */ }
 })();

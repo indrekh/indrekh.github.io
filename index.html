@@ -149,7 +149,17 @@
               </div>
             </div>
             <p id="chain-status" class="chain-status" hidden></p>
-            <pre id="cert-pem" class="pem-code"></pre>
+            <div class="pem-columns">
+              <div class="pem-col">
+                <h4 class="pem-col-title" data-i18n="certdetails.pemColumn">Sertifikaadi PEM</h4>
+                <pre id="cert-pem" class="pem-code"></pre>
+              </div>
+              <div class="pem-col">
+                <h4 class="pem-col-title" data-i18n="certdetails.chainColumn">Täielik ahel (PEM)</h4>
+                <pre id="cert-chain-pem" class="pem-code"></pre>
+                <p id="chain-pem-note" class="chain-pem-note" hidden></p>
+              </div>
+            </div>
           </details>
         </section>
 
@@ -183,10 +193,17 @@
         </div>
 
         <footer class="result-foot">
-          <p class="source-note" id="source-note"></p>
-          <div class="external-links">
-            <a id="link-ssllabs" target="_blank" rel="noopener"></a>
-            <a id="link-crtsh" target="_blank" rel="noopener"></a>
+          <div class="share-row">
+            <button type="button" class="share-btn" id="share-link" data-i18n="share.copyLink">Kopeeri jagatav link</button>
+            <button type="button" class="share-btn" id="copy-result" data-i18n="share.copyResult">Kopeeri tulemus</button>
+            <span class="share-status" id="share-status" hidden></span>
+          </div>
+          <div class="foot-meta">
+            <p class="source-note" id="source-note"></p>
+            <div class="external-links">
+              <a id="link-ssllabs" target="_blank" rel="noopener"></a>
+              <a id="link-crtsh" target="_blank" rel="noopener"></a>
+            </div>
           </div>
         </footer>
       </article>
@@ -224,6 +241,33 @@
             </span>
             <h3 data-i18n="feat3.title">Krüptitud liiklus</h3>
             <p data-i18n="feat3.text">SSL/TLS krüptib külastaja ja serveri vahelise ühenduse. Aegunud sertifikaat jätab andmed kuulatavaks ja muudetavaks.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="learn">
+      <div class="container">
+        <h2 data-i18n="learn.title">Sertifikaadi uuendamine ja tulemuse mõistmine</h2>
+        <div class="learn-grid">
+          <div class="learn-card">
+            <h3 data-i18n="learn.fieldsTitle">Mida tulemus tähendab?</h3>
+            <dl class="glossary">
+              <div><dt data-i18n="learn.glossIssuer">Väljaandja</dt><dd data-i18n="learn.glossIssuerText">Asutus (CA), mis sertifikaadi välja andis ja digitaalselt allkirjastas – näiteks Let's Encrypt või Google Trust Services.</dd></div>
+              <div><dt data-i18n="learn.glossValid">Kehtivusaeg</dt><dd data-i18n="learn.glossValidText">Sertifikaat kehtib ainult märgitud ajavahemikul. Pärast lõppkuupäeva kuvab brauser hoiatuslehe.</dd></div>
+              <div><dt data-i18n="learn.glossFp">Sõrmejälg</dt><dd data-i18n="learn.glossFpText">Sertifikaadi unikaalne SHA-256 identifikaator, mille järgi saab kindlaks teha, kas server teenindab just seda sertifikaati.</dd></div>
+              <div><dt data-i18n="learn.glossSan">Kaitstud domeenid</dt><dd data-i18n="learn.glossSanText">Kõik aadressid, mille jaoks sertifikaat kehtib (SAN). Kui sinu aadressi seal pole, ilmub brauseris hoiatus.</dd></div>
+            </dl>
+          </div>
+          <div class="learn-card">
+            <h3 data-i18n="learn.renewTitle">Kuidas sertifikaati uuendada?</h3>
+            <p class="learn-intro" data-i18n="learn.renewIntro">Enamikul juhtudel piisab Let's Encrypti tasuta sertifikaadist ja Certbotist. Uuenda sertifikaat vähemalt 30 päeva enne aegumist.</p>
+            <ol class="steps">
+              <li data-i18n-html="learn.step1">Paigalda Certbot: <code>sudo apt install certbot python3-certbot-nginx</code> (Nginx) või <code>python3-certbot-apache</code> (Apache).</li>
+              <li data-i18n-html="learn.step2">Hangi ja paigalda sertifikaat: <code>sudo certbot --nginx -d sinudomeen.ee</code> (või <code>--apache</code>).</li>
+              <li data-i18n-html="learn.step3">Kontrolli automaatset uuendamist: <code>sudo certbot renew --dry-run</code>. Certbot lisab ise ajastatud ülesande.</li>
+            </ol>
+            <p class="learn-tip" data-i18n="learn.tip">Nipp: kui kasutad Cloudflare'i, saab SSL-i hallata ka selle juhtpaneelilt – siis ei pea Certboti serveris käitama.</p>
           </div>
         </div>
       </div>

@@ -37,6 +37,13 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
    Keelamiseks muuda `CONFIG.chain = false`. Erinevalt CT-logide vaatest näitab
    see ahel just seda, mida server parasjagu teenindab. Rikke korral kuvatakse
    veateade, leht jääb kasutatavaks.
+7. **Jagatav kontrollilink ja tulemuse kopeerimine** – `ssl.ee/?d=domeen.ee`
+   käivitab kontrolli automaatselt. Tulemuse all olevad nupud kopeerivad
+   jagatava lingi (mobiilil kasutatakse vajadusel natiivset jagamist) või
+   kogu tulemuse tekstina (staatus, väljaandja, kehtivus, SAN-id, sõrmejälg).
+8. **Hariv lisasisu** – tulemuskardi väljadel on lühiselgitused ja lehe all
+   on sõnastik väljade kohta ning samm-sammult juhend sertifikaadi uuendamiseks
+   Let's Encrypti ja Certbotiga (sh automaatne uuendamine ja Cloudflare'i nipp).
 
 Täpseks kättesaamise analüüsiks (protokollid, šifrid, usaldusahel) suunab leht
 kasutaja SSL Labsi raportile.
