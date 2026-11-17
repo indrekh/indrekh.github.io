@@ -35,8 +35,12 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
    (leht → vahepealsed → juur). Kopeerimine annab tervikliku PEM-i lõikelauale,
    allalaadimine loob ühe `.pem`-faili. API-võtit pole vaja, CORS on lubatud.
    Keelamiseks muuda `CONFIG.chain = false`. Erinevalt CT-logide vaatest näitab
-   see ahel just seda, mida server parasjagu teenindab. Rikke korral kuvatakse
-   veateade, leht jääb kasutatavaks.
+   see ahel just seda, mida server parasjagu teenindab. PEM-i plokis kuvatakse
+   ühe sertifikaadi PEM vasakul ja täielik ahel paremal (kitsas ekraanil
+   virnastatakse). Ahel laaditakse taustal ja ühte domeeni laaditud ahelat
+   kasutatakse uuesti nii kuvamisel, kopeerimisel kui allalaadimisel – seega
+   tehakse võrgupäring ainult üks kord. Rikke korral kuvatakse veateade, leht
+   jääb kasutatavaks.
 7. **Jagatav kontrollilink ja tulemuse kopeerimine** – `ssl.ee/?d=domeen.ee`
    käivitab kontrolli automaatselt. Tulemuse all olevad nupud kopeerivad
    jagatava lingi (mobiilil kasutatakse vajadusel natiivset jagamist) või

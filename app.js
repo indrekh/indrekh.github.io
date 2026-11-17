@@ -101,6 +101,10 @@
       'certdetails.chainOk': 'Täielik ahel alla laaditud ({n} sertifikaati).',
       'certdetails.chainFail': 'Ahela laadimine ei õnnestunud. Proovi hiljem uuesti.',
       'certdetails.chainNote': 'Ahel pärineb serveri reaalselt saadetud sertifikaatidest (Trustico SSL Tools).',
+      'certdetails.pemColumn': 'Sertifikaadi PEM',
+      'certdetails.chainColumn': 'Täielik ahel (PEM)',
+      'certdetails.chainLoading': 'Laadin ahelat…',
+      'certdetails.chainLoadFail': 'Ahela sisu ei õnnestunud laadida. Proovi hiljem uuesti.',
       'timeline.title': 'Väljaandmise ajalugu',
       'timeline.summary': 'Viimase 12 kuu jooksul {n} väljaannet',
       'timeline.issuers': '{n} väljaandjat',
@@ -218,6 +222,10 @@
       'certdetails.chainOk': 'Full chain downloaded ({n} certificates).',
       'certdetails.chainFail': 'Could not load the chain. Please try again later.',
       'certdetails.chainNote': 'The chain comes from the certificates actually served by the server (Trustico SSL Tools).',
+      'certdetails.pemColumn': 'Certificate PEM',
+      'certdetails.chainColumn': 'Full chain (PEM)',
+      'certdetails.chainLoading': 'Loading chain…',
+      'certdetails.chainLoadFail': 'Could not load the chain content. Please try again later.',
       'timeline.title': 'Issuance history',
       'timeline.summary': '{n} issuances in the last 12 months',
       'timeline.issuers': '{n} issuers',
@@ -277,6 +285,7 @@
     certDetails: $('cert-details'), certSerial: $('cert-serial'),
     certSubject: $('cert-subject'), certSignature: $('cert-signature'),
     certKey: $('cert-key'), certPem: $('cert-pem'), certKind: $('cert-kind'),
+    certChainPem: $('cert-chain-pem'), chainPemNote: $('chain-pem-note'),
     copyPem: $('copy-pem'), copyChain: $('copy-chain'), downloadPem: $('download-pem'),
     downloadChain: $('download-chain'), chainStatus: $('chain-status'),
     timeline: $('timeline'), timelineSummary: $('timeline-summary'),
@@ -813,7 +822,7 @@
     }
 
     renderSans(c.dnsNames, host);
-    renderCertDetails(c);
+    renderCertDetails(c, host);
     renderTimeline(data.timeline || null);
 
     // Tühistamise märge
@@ -927,7 +936,7 @@
     showShareStatus(t(ok ? 'share.resultCopied' : 'certdetails.copyFail'), !ok);
   }
 
-  function renderCertDetails(cert) {
+  function renderCertDetails(cert, host) {
     const parsed = cert.pemData ? parseX509(cert.pemData) : null;
     if (!parsed) { els.certDetails.hidden = true; return; }
     els.certSerial.textContent = parsed.serial;
@@ -941,6 +950,22 @@
     els.downloadChain.title = t('certdetails.chainNote');
     showChainStatus('');
     els.certDetails.hidden = false;
+
+    // Täielik ahel paremal poolel – laaditakse taustal, ei blokeeri põhitulemust
+    els.certChainPem.textContent = t('certdetails.chainLoading');
+    els.chainPemNote.hidden = true;
+    loadChain(host).then((pems) => {
+      // Iguaegne tulemus: ära kirjuta vana domeeni andmeid uue peale
+      if (!lastRender || lastRender.type !== 'result' || lastRender.data.host !== host) return;
+      if (pems && pems.length) {
+        els.certChainPem.textContent = pems.join('\n');
+        els.chainPemNote.textContent = t('certdetails.chainNote');
+      } else {
+        els.certChainPem.textContent = '';
+        els.chainPemNote.textContent = t('certdetails.chainLoadFail');
+      }
+      els.chainPemNote.hidden = false;
+    });
   }
 
   function showChainStatus(msg, kind) {
@@ -963,6 +988,19 @@
       .map((x) => x && x.certificate)
       .filter((p) => typeof p === 'string' && p.indexOf('BEGIN CERTIFICATE') !== -1);
     return pems.length ? pems : null;
+  }
+
+  // Kord laaditud ahelat kasutatakse uuesti kuvamisel, kopeerimisel ja allalaadimisel
+  const chainCache = new Map();
+
+  function loadChain(host) {
+    if (!host) return Promise.resolve(null);
+    if (chainCache.has(host)) return chainCache.get(host);
+    const p = (CONFIG.chain ? fetchChain(host) : Promise.resolve(null))
+      .then((pems) => (pems && pems.length ? pems : null))
+      .catch(() => null);
+    chainCache.set(host, p);
+    return p;
   }
 
   async function copyText(text) {
@@ -1013,7 +1051,7 @@
     els.copyChain.disabled = true;
     showChainStatus(t('certdetails.copyingChain'));
     try {
-      const pems = await fetchChain(host);
+      const pems = await loadChain(host);
       if (!pems) throw new Error('chain unavailable');
       if (!await copyText(pems.join('\n'))) throw new Error('copy failed');
       els.copyChain.textContent = t('certdetails.copied');
@@ -1031,7 +1069,7 @@
     els.downloadChain.disabled = true;
     showChainStatus(t('certdetails.downloading'));
     try {
-      const pems = await fetchChain(host);
+      const pems = await loadChain(host);
       if (!pems) throw new Error('chain unavailable');
       savePemFile(pems.join('\n'), host + '-full-chain.pem');
       showChainStatus(t('certdetails.chainOk', { n: pems.length }), 'ok');
