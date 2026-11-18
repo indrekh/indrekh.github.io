@@ -81,9 +81,10 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
 14. **curl / OpenSSL käsud** – PEM-i ploki nupud kopeerivad otse kasutatavad
     käsud: `curl` laeb sertifikaadi eraldi API-st (`/api/pem?d=...`) `.pem`-faili,
     OpenSSL-käsk suunab sama PEM-i toru kaudu `openssl x509` analüüsiks.
-15. **Hele/tume teema** – päises olev nupp lülitab teemat; valik salvestatakse
-    `localStorage`'i (`ssl-ee-theme`) ja rakendatakse enne CSS-i laadimist, et
-    vältida vilksatust. Vaikimisi on endiselt tume teema.
+15. **Hele/tume teema** – päises olev nupp lülitab teemat nii kontrollijas kui
+    ka API-dokumentatsioonis; valik salvestatakse `localStorage`'i
+    (`ssl-ee-theme`) ja rakendatakse enne CSS-i laadimist, et vältida vilksatust.
+    Vaikimisi on endiselt tume teema.
 16. **Apex + www kõrvuti** – nupp „+ Võrdle apex ja www" kontrollib mõlemat
     hosti (`domeen.ee` ja `www.domeen.ee`) ühe klikiga ja näitab kahes veerus
     staatuse, allesjäänud päevad ja väljaandja. Iga veeru alt pääseb detailtulemusse.
@@ -91,8 +92,15 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
 17. **crt.sh ajaloo CORS-i parandus** – brauser küsib ajaloo läbi oma Workeri
     endpointi `/api/history`, mis tagastab normaliseeritud GT-logi kirjed
     (`not_before`, `not_after`, `name_value`, `issuer_name`). Kui API pole
-    juurutatud, proovitakse varumeetodina otse crt.sh-d; ajalugu peidetakse
+    juurutatud, proovitakse varumeetodina otse crt.sh-i; ajalugu peidetakse
     endiselt vaikselt, kui mõlemad allikad ebaõnnestuvad.
+18. **Kontrolli leiud** – tulemuse ülaossa koonduvad automaatsed järeldused
+    olemasolevatest andmetest: hosti katvus, aegumine, kehtivusaja pikkus
+    (CA/B Forum 398 päeva), avaliku võtme tugevus, allkirja algoritm,
+    tühistamine, metamärk, CT-logimine, ahela terviklikkus, CAA, DNSSEC ja
+    HTTP turvapäiste hinne. Probleemid ja hoiatused kuvatakse kohe, ülejäänud
+    kontrollid on kokkuvolditud nimekirjas. Leiud arvutatakse brauseris ja
+    uuendatakse, kui ahela, DNS-i või Observatory andmed hiljem saabuvad.
 
 Täpseks kättesaamise analüüsiks (protokollid, šifrid, usaldusahel) suunab leht
 kasutaja SSL Labsi raportile.
