@@ -101,6 +101,14 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
     HTTP turvapäiste hinne. Probleemid ja hoiatused kuvatakse kohe, ülejäänud
     kontrollid on kokkuvolditud nimekirjas. Leiud arvutatakse brauseris ja
     uuendatakse, kui ahela, DNS-i või Observatory andmed hiljem saabuvad.
+19. **PEM-i dekodeerija** – eraldi alamlehel [`pem.html`](pem.html) saab
+    sertifikaadi PEM-i (või pelga base64) kleepida ja kohapeal lahti lugeda:
+    subjekt, väljaandja, seerianumber, kehtivus, avalik võti, allkirja algoritm,
+    SHA-256 sõrmejälg ja SAN-nimed. Oma ASN.1 parser loeb ka
+    `UTCTime`/`GeneralizedTime` kuupäevad ja `subjectAltName` laienduse.
+    Dekodeerimine ei tee ühtegi võrgupäringut; mitme PEM-i kleepimisel
+    näidatakse esimest (lehtsertifikaati). Lehele pääseb avalehe päises oleva
+    **PEM**-lingi kaudu (API kõrval) ning API-docside päisest.
 
 Täpseks kättesaamise analüüsiks (protokollid, šifrid, usaldusahel) suunab leht
 kasutaja SSL Labsi raportile.

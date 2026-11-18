@@ -52,6 +52,7 @@
       </a>
       <div class="header-nav">
         <a class="api-link" href="api-docs.html" data-i18n="nav.api" data-i18n-aria-label="nav.apiAria">API</a>
+        <a class="api-link" href="pem.html" data-i18n="nav.pem" data-i18n-aria-label="nav.pemAria">PEM</a>
         <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false"
                 aria-label="Vaheta heledat ja tumedat teemat" title="Vaheta heledat ja tumedat teemat"
                 data-i18n-aria-label="nav.theme">
@@ -134,6 +135,18 @@
         </header>
         <p class="advice" id="advice"></p>
 
+        <section id="findings" class="findings" hidden>
+          <div class="findings-head">
+            <h3 data-i18n="f.title">Kontrolli leiud</h3>
+            <span id="findings-summary" class="findings-summary"></span>
+          </div>
+          <ul id="findings-list" class="findings-list"></ul>
+          <details id="findings-more" class="findings-more" hidden>
+            <summary id="findings-more-toggle"></summary>
+            <ul id="findings-rest" class="findings-list"></ul>
+          </details>
+        </section>
+
         <div class="result-body">
           <div class="gauge-wrap">
             <div class="gauge">
@@ -151,20 +164,20 @@
 
           <dl class="details">
             <div class="detail">
-              <dt data-i18n="detail.issuer">Väljaandja</dt><dd id="detail-issuer"></dd>
-              <small class="field-hint" data-i18n="hint.issuer">Asutus, mis sertifikaadi välja andis ja allkirjastas.</small>
+              <dt data-i18n="detail.issuer">Väljaandja</dt>
+              <dd><span id="detail-issuer"></span><small class="field-hint" data-i18n="hint.issuer">Asutus, mis sertifikaadi välja andis ja allkirjastas.</small></dd>
             </div>
             <div class="detail">
-              <dt data-i18n="detail.validFrom">Kehtiv alates</dt><dd id="detail-from"></dd>
-              <small class="field-hint" data-i18n="hint.validFrom">Sellest kuupäevast on sertifikaat kehtiv.</small>
+              <dt data-i18n="detail.validFrom">Kehtiv alates</dt>
+              <dd><span id="detail-from"></span><small class="field-hint" data-i18n="hint.validFrom">Sellest kuupäevast on sertifikaat kehtiv.</small></dd>
             </div>
             <div class="detail">
-              <dt data-i18n="detail.validUntil">Kehtib kuni</dt><dd id="detail-until"></dd>
-              <small class="field-hint" data-i18n="hint.validUntil">Pärast seda näitab brauser hoiatuslehte.</small>
+              <dt data-i18n="detail.validUntil">Kehtib kuni</dt>
+              <dd><span id="detail-until"></span><small class="field-hint" data-i18n="hint.validUntil">Pärast seda näitab brauser hoiatuslehte.</small></dd>
             </div>
             <div class="detail">
-              <dt data-i18n="detail.fingerprint">Sõrmejälg (SHA-256)</dt><dd id="detail-fp" class="mono"></dd>
-              <small class="field-hint" data-i18n="hint.fingerprint">Unikaalne identifikaator sertifikaadi tuvastamiseks.</small>
+              <dt data-i18n="detail.fingerprint">Sõrmejälg (SHA-256)</dt>
+              <dd class="mono"><span id="detail-fp"></span><small class="field-hint" data-i18n="hint.fingerprint">Unikaalne identifikaator sertifikaadi tuvastamiseks.</small></dd>
             </div>
           </dl>
         </div>

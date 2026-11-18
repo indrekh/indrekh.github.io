@@ -34,6 +34,8 @@
       'meta.title': 'ssl.ee — SSL-sertifikaadi kontrollija',
       'nav.api': 'API',
       'nav.apiAria': 'API dokumentatsioon',
+      'nav.pem': 'PEM',
+      'nav.pemAria': 'PEM-i dekodeerija',
       'nav.theme': 'Vaheta heledat ja tumedat teemat',
       'hero.badge': 'Tasuta tööriist · andmed Certificate Transparency logidest',
       'hero.title': 'Kas sinu domeeni <span class="grad">SSL-sertifikaat</span> on veel kehtiv?',
@@ -176,6 +178,71 @@
       'compare.bothOk': 'Mõlemal domeenil on kehtiv sertifikaat.',
       'compare.partial': 'Vähemalt ühe domeeni sertifikaat puudub või on aegunud.',
       'compare.note': 'Apex ja www on eraldi hostid – ühe domeeni sertifikaat ei pruugi kaitsta teist. Kontrolli mõlemat.',
+      'f.title': 'Kontrolli leiud',
+      'f.summaryFail': '{n} probleemi',
+      'f.summaryFailOne': '1 probleem',
+      'f.summaryWarn': '{n} hoiatust',
+      'f.summaryWarnOne': '1 hoiatus',
+      'f.summaryOk': 'Kõik kontrollid on korras',
+      'f.allChecks': 'Kõik kontrollid ({n})',
+      'f.hostOk': 'Sertifikaat katab domeeni {host}',
+      'f.hostOkD': 'Sertifikaadi nimede hulgas on {host}, seega brauser aktsepteerib selle domeeni.',
+      'f.hostFail': 'Sertifikaat ei kata domeeni {host}',
+      'f.hostFailD': 'Sertifikaadi nimede hulgas ei ole {host}. Brauser näitaks selle domeeni jaoks turvahoiatust.',
+      'f.expiryOk': 'Sertifikaat kehtib veel {n} päeva',
+      'f.expiryOkD': 'Uuenda sertifikaat enne {date}, et vältida veebilehe katkestust.',
+      'f.expiryWarn': 'Sertifikaat aegub {n} päeva pärast',
+      'f.expiryWarnD': 'Uuenda sertifikaat kohe – pärast {date} näitab brauser külastajatele hoiatust.',
+      'f.expiryFail': 'Sertifikaat on aegunud',
+      'f.expiryFailD': 'Sertifikaat aegus {date}. Kuni uuendamiseni näitab brauser külastajatele turvahoiatust.',
+      'f.validityOk': 'Kehtivusaeg {n} päeva jääb lubatud piiresse',
+      'f.validityOkD': 'CA/B Forum piirang: avalikult usaldatud sertifikaat ei tohi kehtida üle 398 päeva.',
+      'f.validityWarn': 'Kehtivusaeg {n} päeva ületab 398 päeva piiri',
+      'f.validityWarnD': 'Chrome ja Safari ei pruugi nii pika kehtivusajaga sertifikaati usaldada. Väljasta lühema kehtivusajaga sertifikaat.',
+      'f.keyOk': 'Avalik võti: {key}',
+      'f.keyOkD': 'Võtme tugevus vastab tänastele nõuetele (vähemalt RSA 2048 või EC P-256).',
+      'f.keyFail': 'Nõrk avalik võti: {key}',
+      'f.keyFailD': 'Vähem kui 2048-bitist RSA võtit peetakse ebaturvaliseks. Väljasta uus sertifikaat RSA 2048+ või EC P-256 võtmega.',
+      'f.keyInfo': 'Avalik võti: {key}',
+      'f.keyInfoD': 'Võtme tüüpi ei õnnestunud täpselt tuvastada. Kontrolli seda OpenSSL-iga.',
+      'f.sigOk': 'Allkirja algoritm: {alg}',
+      'f.sigOkD': 'Kasutusel on turvaline räsi (SHA-256 või tugevam).',
+      'f.sigFail': 'Nõrk allkirja algoritm: {alg}',
+      'f.sigFailD': 'SHA-1 või MD5 allkirja peavad brauserid ebaturvaliseks. Väljasta sertifikaat uuesti SHA-256-ga.',
+      'f.sigInfo': 'Allkirja algoritm: {alg}',
+      'f.sigInfoD': 'Tundmatu algoritm. Kontrolli sertifikaati OpenSSL-iga.',
+      'f.revokedFail': 'Sertifikaat on tühistatud',
+      'f.revokedFailD': 'Väljaandja on sertifikaadi tühistanud. Väljasta uus sertifikaat kohe.',
+      'f.wildcardInfo': 'Sertifikaat kasutab metamärki ({pattern})',
+      'f.wildcardInfoD': 'Metamärk katab kõik sama taseme alamdomeenid. Veendu, et see on soovitud ulatus.',
+      'f.ctOk': 'Sertifikaat on CT-logides',
+      'f.ctOkD': 'Sertifikaat on Certificate Transparency logides (allikas: {source}) – Chrome ja Safari nõuavad seda.',
+      'f.chainOk': 'Ahelas on {n} sertifikaati',
+      'f.chainOkD': 'Server saadab lehe ja vähemalt ühe vahepealse sertifikaadi, seega kliendid saavad ahela ise lõpetada.',
+      'f.chainMissingWarn': 'Ahelas on ainult lehtsertifikaat',
+      'f.chainMissingWarnD': 'Server ei saada vahepealset sertifikaati. Osa kliente ei suuda ahelat ise täiendada. Lisa vahepealne sertifikaat serveri seadistusse.',
+      'f.chainRootInfo': 'Server saadab ka juursertifikaadi',
+      'f.chainRootInfoD': 'Juur pole vajalik ja suurendab iga ühenduse mahtu. Eemalda see serveri ahelast.',
+      'f.chainExpiryWarn': 'Ahela sertifikaat aegub varsti: {name}',
+      'f.chainExpiryWarnD': 'Vahepealne sertifikaat aegub {date}. Võta ühendust oma CA-ga ja uuenda ahel.',
+      'f.chainCheckInfo': 'CT-logi ja serveri leht erinevad',
+      'f.chainCheckInfoD': 'See võib olla normaalne, kui domeenil on mitu kehtivat sertifikaati (nt CDN-i puhul). Kontrolli serveri seadistust, kui see pole ootuspärane.',
+      'f.caaOk': 'CAA-kirjed on olemas ({n})',
+      'f.caaOkD': 'CAA-kirjed piiravad, millised CA-d tohivad domeenile sertifikaate väljastada.',
+      'f.caaInfo': 'CAA-kirjeid ei ole',
+      'f.caaInfoD': 'CAA kirjed takistavad volitamata CA-del sertifikaate väljastada. Näide: issue "letsencrypt.org"',
+      'f.dnssecOk': 'DNSSEC on aktiivne',
+      'f.dnssecOkD': 'DNS-vastused on krüptograafiliselt allkirjastatud.',
+      'f.dnssecInfo': 'DNSSEC ei ole aktiivne',
+      'f.dnssecInfoD': 'DNSSEC kaitseb DNS-vastuseid võltsimise eest. Küsi DNSSEC-tuge oma DNS-teenusepakkujalt.',
+      'f.headersOk': 'HTTP turvapäiste hinne: {grade}',
+      'f.headersOkD': 'Turvapäised (HSTS, CSP jt) on hästi seadistatud.',
+      'f.headersInfo': 'HTTP turvapäiste hinne: {grade}',
+      'f.headersInfoD': 'Päised on osaliselt seadistatud. Vaata üksikasju MDN HTTP Observatoryst.',
+      'f.headersWarn': 'HTTP turvapäiste hinne: {grade}',
+      'f.headersWarnD': 'Mitmed turvapäised on puudulikud. Vaata soovitusi MDN HTTP Observatoryst.',
+      'f.headersFail': 'HTTP turvapäiste hinne: {grade}',
+      'f.headersFailD': 'Turvapäised on puudulikud või ohtlikult seadistatud. Paranda HSTS, CSP ja X-Content-Type-Options.',
       'sans.title': 'Kaitstud domeenid ({n})',
       'sans.more': 'Näita kõiki ({n})',
       'sans.less': 'Näita vähem',
@@ -221,6 +288,8 @@
       'meta.title': 'ssl.ee — SSL certificate checker',
       'nav.api': 'API',
       'nav.apiAria': 'API documentation',
+      'nav.pem': 'PEM',
+      'nav.pemAria': 'PEM decoder',
       'nav.theme': 'Switch between light and dark theme',
       'hero.badge': 'Free tool · data from Certificate Transparency logs',
       'hero.title': 'Is your domain\'s <span class="grad">SSL certificate</span> still valid?',
@@ -363,6 +432,71 @@
       'compare.bothOk': 'Both domains have a valid certificate.',
       'compare.partial': 'At least one domain has a missing or expired certificate.',
       'compare.note': 'Apex and www are separate hosts – a certificate for one may not cover the other. Check both.',
+      'f.title': 'Check findings',
+      'f.summaryFail': '{n} problems',
+      'f.summaryFailOne': '1 problem',
+      'f.summaryWarn': '{n} warnings',
+      'f.summaryWarnOne': '1 warning',
+      'f.summaryOk': 'All checks passed',
+      'f.allChecks': 'All checks ({n})',
+      'f.hostOk': 'Certificate covers {host}',
+      'f.hostOkD': 'The certificate lists {host}, so browsers accept this hostname.',
+      'f.hostFail': 'Certificate does not cover {host}',
+      'f.hostFailD': 'The certificate does not list {host}. Browsers would show a security warning for this hostname.',
+      'f.expiryOk': 'Certificate is valid for another {n} days',
+      'f.expiryOkD': 'Renew before {date} to avoid downtime.',
+      'f.expiryWarn': 'Certificate expires in {n} days',
+      'f.expiryWarnD': 'Renew now – after {date} visitors will see a browser warning.',
+      'f.expiryFail': 'Certificate has expired',
+      'f.expiryFailD': 'The certificate expired on {date}. Until it is renewed, visitors will see a security warning.',
+      'f.validityOk': 'Validity of {n} days is within the limit',
+      'f.validityOkD': 'CA/B Forum rule: a publicly trusted certificate must not be valid for more than 398 days.',
+      'f.validityWarn': 'Validity of {n} days exceeds the 398-day limit',
+      'f.validityWarnD': 'Chrome and Safari may not trust a certificate with such a long lifetime. Reissue with a shorter validity.',
+      'f.keyOk': 'Public key: {key}',
+      'f.keyOkD': 'Key strength meets current requirements (at least RSA 2048 or EC P-256).',
+      'f.keyFail': 'Weak public key: {key}',
+      'f.keyFailD': 'RSA keys below 2048 bits are considered insecure. Reissue with an RSA 2048+ or EC P-256 key.',
+      'f.keyInfo': 'Public key: {key}',
+      'f.keyInfoD': 'The key type could not be determined precisely. Check it with OpenSSL.',
+      'f.sigOk': 'Signature algorithm: {alg}',
+      'f.sigOkD': 'A secure hash (SHA-256 or stronger) is in use.',
+      'f.sigFail': 'Weak signature algorithm: {alg}',
+      'f.sigFailD': 'Browsers consider SHA-1 or MD5 signatures insecure. Reissue the certificate with SHA-256.',
+      'f.sigInfo': 'Signature algorithm: {alg}',
+      'f.sigInfoD': 'Unknown algorithm. Verify the certificate with OpenSSL.',
+      'f.revokedFail': 'Certificate has been revoked',
+      'f.revokedFailD': 'The issuer has revoked this certificate. Reissue immediately.',
+      'f.wildcardInfo': 'Certificate uses a wildcard ({pattern})',
+      'f.wildcardInfoD': 'A wildcard covers every subdomain at the same level. Make sure that scope is intended.',
+      'f.ctOk': 'Certificate is in CT logs',
+      'f.ctOkD': 'The certificate is logged in Certificate Transparency (source: {source}) – Chrome and Safari require this.',
+      'f.chainOk': 'Chain contains {n} certificates',
+      'f.chainOkD': 'The server sends the leaf and at least one intermediate, so clients can complete the chain.',
+      'f.chainMissingWarn': 'Chain contains only the leaf certificate',
+      'f.chainMissingWarnD': 'The server does not send an intermediate certificate. Some clients cannot complete the chain. Add the intermediate to the server configuration.',
+      'f.chainRootInfo': 'Server also sends the root certificate',
+      'f.chainRootInfoD': 'The root is unnecessary and increases the size of every connection. Remove it from the served chain.',
+      'f.chainExpiryWarn': 'A chain certificate expires soon: {name}',
+      'f.chainExpiryWarnD': 'An intermediate certificate expires on {date}. Contact your CA and update the chain.',
+      'f.chainCheckInfo': 'CT log and served leaf differ',
+      'f.chainCheckInfoD': 'This can be normal when a domain has several valid certificates (for example behind a CDN). Check the server configuration if it is unexpected.',
+      'f.caaOk': 'CAA records are present ({n})',
+      'f.caaOkD': 'CAA records restrict which CAs may issue certificates for the domain.',
+      'f.caaInfo': 'No CAA records',
+      'f.caaInfoD': 'CAA records prevent unauthorised CAs from issuing certificates. Example: issue "letsencrypt.org"',
+      'f.dnssecOk': 'DNSSEC is active',
+      'f.dnssecOkD': 'DNS answers are cryptographically signed.',
+      'f.dnssecInfo': 'DNSSEC is not active',
+      'f.dnssecInfoD': 'DNSSEC protects DNS answers against spoofing. Ask your DNS provider for DNSSEC support.',
+      'f.headersOk': 'HTTP security header grade: {grade}',
+      'f.headersOkD': 'Security headers (HSTS, CSP and others) are well configured.',
+      'f.headersInfo': 'HTTP security header grade: {grade}',
+      'f.headersInfoD': 'Headers are partially configured. See details in MDN HTTP Observatory.',
+      'f.headersWarn': 'HTTP security header grade: {grade}',
+      'f.headersWarnD': 'Several security headers are missing or weak. See the recommendations in MDN HTTP Observatory.',
+      'f.headersFail': 'HTTP security header grade: {grade}',
+      'f.headersFailD': 'Security headers are missing or dangerously configured. Fix HSTS, CSP and X-Content-Type-Options.',
       'sans.title': 'Covered hostnames ({n})',
       'sans.more': 'Show all ({n})',
       'sans.less': 'Show fewer',
@@ -440,6 +574,9 @@
     comparePanel: $('compare-panel'), compareTitle: $('compare-title'),
     compareSubtitle: $('compare-subtitle'), compareCards: $('compare-cards'),
     compareSummary: $('compare-summary'), compareNote: $('compare-note'),
+    findings: $('findings'), findingsSummary: $('findings-summary'),
+    findingsList: $('findings-list'), findingsMore: $('findings-more'),
+    findingsMoreToggle: $('findings-more-toggle'), findingsRest: $('findings-rest'),
     sanTitle: $('san-title'), sanList: $('san-list'), sanToggle: $('san-toggle'),
     badges: $('badges'),
     obs: $('obs'), obsGrade: $('obs-grade'), obsScore: $('obs-score'), obsLink: $('obs-link'),
@@ -964,6 +1101,165 @@
     els.sanToggle.onclick = () => { sansExpanded = !sansExpanded; render(); };
   }
 
+  /* ---------- Kontrolli leiud (auditi kokkuvõte) ---------- */
+
+  const FINDING_ORDER = { fail: 0, warn: 1, info: 2, pass: 3 };
+
+  function buildFindings(data) {
+    const out = [];
+    if (!data || !data.cert) return out;
+    const { host, cert: c, source, hasActive } = data;
+    const now = Date.now();
+    const parsed = data.parsed || null;
+    const dnsNames = Array.isArray(c.dnsNames) ? c.dnsNames : [];
+    const daysLeft = Math.ceil((c.notAfter - now) / 864e5);
+    const status = statusOf(c, hasActive);
+    const push = (key, level, vars) => out.push({ key, level, vars: vars || {} });
+
+    // 1) Kas sertifikaat katab päritud hosti
+    if (dnsNames.length) {
+      if (dnsNames.some((n) => hostMatches(n, host))) push('f.hostOk', 'pass', { host });
+      else push('f.hostFail', 'fail', { host });
+    }
+
+    // 2) Kehtivusaeg
+    if (status === 'expired') {
+      push('f.expiryFail', 'fail', { date: fmtDate(c.notAfter) });
+    } else if (status === 'expiring') {
+      push('f.expiryWarn', 'warn', { n: Math.max(daysLeft, 0), date: fmtDate(c.notAfter) });
+    } else {
+      push('f.expiryOk', 'pass', { n: daysLeft, date: fmtDate(c.notAfter) });
+    }
+
+    // 3) Kehtivusaja pikkus (CA/B Forum: avalik sertifikaat kuni 398 päeva)
+    const life = Math.round((c.notAfter - c.notBefore) / 864e5);
+    if (Number.isFinite(life) && life > 0) {
+      if (life > 398) push('f.validityWarn', 'warn', { n: life });
+      else push('f.validityOk', 'pass', { n: life });
+    }
+
+    // 4) Avaliku võtme tugevus
+    const key = parsed && parsed.key ? String(parsed.key) : '';
+    const rsa = /^RSA-(\d+)$/.exec(key);
+    if (rsa) {
+      if (Number(rsa[1]) < 2048) push('f.keyFail', 'fail', { key });
+      else push('f.keyOk', 'pass', { key });
+    } else if (/^ECDSA · (P-\d+)/.test(key)) {
+      push('f.keyOk', 'pass', { key });
+    } else if (key && key !== '–') {
+      push('f.keyInfo', 'info', { key });
+    }
+
+    // 5) Allkirja algoritm
+    const sig = parsed && parsed.signature ? String(parsed.signature) : '';
+    if (sig && sig !== '–') {
+      if (/\bMD5\b|\bSHA-1\b/i.test(sig)) push('f.sigFail', 'fail', { alg: sig });
+      else if (/SHA-2|SHA-3|SHA-256|SHA-384|SHA-512|Ed25519|Ed448/i.test(sig)) push('f.sigOk', 'pass', { alg: sig });
+      else push('f.sigInfo', 'info', { alg: sig });
+    }
+
+    // 6) Tühistamine
+    if (c.revoked) push('f.revokedFail', 'fail', {});
+
+    // 7) Metamärk
+    const wild = dnsNames.find((n) => n.startsWith('*.') && hostMatches(n, host));
+    if (wild) push('f.wildcardInfo', 'info', { pattern: wild });
+
+    // 8) Certificate Transparency
+    if (source) push('f.ctOk', 'pass', { source });
+
+    // 9) Serveri saadetud ahel
+    if (Array.isArray(data.chainTree) && data.chainTree.length) {
+      const nodes = data.chainTree;
+      const selfSigned = (n) => n.subject && n.issuer && n.subject === n.issuer;
+      if (nodes.length < 2) push('f.chainMissingWarn', 'warn', {});
+      else push('f.chainOk', 'pass', { n: nodes.length });
+      if (nodes.some(selfSigned)) push('f.chainRootInfo', 'info', {});
+      const expiring = nodes.slice(1).filter((n) => !selfSigned(n) &&
+        Number.isFinite(n.notAfter) && n.notAfter - now <= CONFIG.warnDays * 864e5);
+      if (expiring.length) {
+        push('f.chainExpiryWarn', 'warn', {
+          name: expiring[0].subject || '–',
+          date: fmtDate(expiring[0].notAfter),
+        });
+      }
+    }
+
+    // 10) CT-logi ja serveri lehe erinevus (nõuandev, mitte tingimata viga)
+    if (data.chainCheck && data.chainCheck.kind === 'mismatch') push('f.chainCheckInfo', 'info', {});
+
+    // 11) CAA ja DNSSEC
+    if (data.dns) {
+      if (Array.isArray(data.dns.caa) && data.dns.caa.length) push('f.caaOk', 'pass', { n: data.dns.caa.length });
+      else push('f.caaInfo', 'info', {});
+      push(data.dns.ad ? 'f.dnssecOk' : 'f.dnssecInfo', data.dns.ad ? 'pass' : 'info', {});
+    }
+
+    // 12) HTTP turvapäiste hinne
+    if (data.obs && data.obs.grade) {
+      const g = String(data.obs.grade).toUpperCase().charAt(0);
+      const level = g === 'A' ? 'pass' : (g === 'B' ? 'info' : (g === 'C' ? 'warn' : 'fail'));
+      const keyName = { pass: 'f.headersOk', info: 'f.headersInfo', warn: 'f.headersWarn', fail: 'f.headersFail' }[level];
+      push(keyName, level, { grade: data.obs.grade });
+    }
+
+    return out.sort((a, b) => FINDING_ORDER[a.level] - FINDING_ORDER[b.level]);
+  }
+
+  function findingNode(f) {
+    const li = document.createElement('li');
+    li.className = 'finding finding-' + f.level;
+
+    const icon = document.createElement('span');
+    icon.className = 'finding-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.innerHTML = f.level === 'fail' ? ICON_X
+      : (f.level === 'warn' ? ICON_WARN : (f.level === 'pass' ? ICON_CHECK : ICON_INFO));
+
+    const body = document.createElement('div');
+    body.className = 'finding-body';
+    const title = document.createElement('p');
+    title.className = 'finding-title';
+    title.textContent = t(f.key, f.vars);
+    const detail = document.createElement('p');
+    detail.className = 'finding-detail';
+    detail.textContent = t(f.key + 'D', f.vars);
+    body.append(title, detail);
+
+    li.append(icon, body);
+    return li;
+  }
+
+  function renderFindings(data) {
+    if (!els.findings) return;
+    const all = buildFindings(data);
+    if (!all.length) { els.findings.hidden = true; return; }
+
+    const fails = all.filter((f) => f.level === 'fail');
+    const warns = all.filter((f) => f.level === 'warn');
+    const issues = fails.concat(warns);
+    const rest = all.filter((f) => f.level === 'info' || f.level === 'pass');
+
+    const parts = [];
+    if (fails.length) parts.push(fails.length === 1 ? t('f.summaryFailOne') : t('f.summaryFail', { n: fails.length }));
+    if (warns.length) parts.push(warns.length === 1 ? t('f.summaryWarnOne') : t('f.summaryWarn', { n: warns.length }));
+    els.findingsSummary.textContent = parts.length ? parts.join(' · ') : t('f.summaryOk');
+    els.findingsSummary.className = 'findings-summary' + (parts.length ? (fails.length ? ' bad' : ' warn') : ' ok');
+
+    els.findingsList.textContent = '';
+    for (const f of issues) els.findingsList.appendChild(findingNode(f));
+    els.findingsList.hidden = issues.length === 0;
+
+    const wasOpen = els.findingsMore.open;
+    els.findingsRest.textContent = '';
+    for (const f of rest) els.findingsRest.appendChild(findingNode(f));
+    els.findingsMore.hidden = rest.length === 0;
+    els.findingsMoreToggle.textContent = t('f.allChecks', { n: rest.length });
+    els.findingsMore.open = wasOpen && !els.findingsMore.hidden;
+
+    els.findings.hidden = false;
+  }
+
   function renderResult(data) {
     lastRender = { type: 'result', data };
     hideStates();
@@ -1008,13 +1304,16 @@
       els.detailFp.title = '';
     }
 
+    const parsed = c.pemData ? parseX509(c.pemData) : null;
+    data.parsed = parsed;
     renderSans(c.dnsNames, host);
-    renderCertDetails(c, host);
+    renderCertDetails(c, host, parsed);
     renderChainCheck(c, host, data);
     renderChainTree(host, data);
     renderDns(host, data);
     els.addReminder.hidden = status === 'expired';
     renderTimeline(data.timeline || null);
+    renderFindings(data);
 
     // Tühistamise märge
     els.badges.textContent = '';
@@ -1146,8 +1445,8 @@
     showShareStatus(t(ok ? 'cmd.' + kind + 'Copied' : 'certdetails.copyFail'), !ok);
   }
 
-  function renderCertDetails(cert, host) {
-    const parsed = cert.pemData ? parseX509(cert.pemData) : null;
+  function renderCertDetails(cert, host, parsedArg) {
+    const parsed = parsedArg || (cert.pemData ? parseX509(cert.pemData) : null);
     if (!parsed) { els.certDetails.hidden = true; return; }
     els.certSerial.textContent = parsed.serial;
     els.certSubject.textContent = parsed.subjectDn;
@@ -1256,6 +1555,7 @@
   const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.4-3.4 8.5-8 9-4.6-.5-8-4.6-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>';
   const ICON_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 4.3L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17v.01"/></svg>';
   const ICON_INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8v.01"/></svg>';
+  const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>';
 
   function pemToDer(pem) {
     const m = String(pem).match(/-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/);
@@ -1309,6 +1609,7 @@
       if (!lastRender || lastRender.type !== 'result' || lastRender.data.host !== host) return;
       data.chainCheck = res;
       paintChainCheck(res);
+      renderFindings(data);
     });
   }
 
@@ -1386,6 +1687,7 @@
       data.chainTree = nodes;
       if (!nodes) { els.chainTree.hidden = true; return; }
       paintChainTree(nodes);
+      renderFindings(data);
     });
   }
 
@@ -1467,6 +1769,7 @@
       if (!lastRender || lastRender.type !== 'result' || lastRender.data.host !== host) return;
       data.dns = res;
       paintDns(res);
+      renderFindings(data);
     });
   }
 
@@ -1779,7 +2082,10 @@
         obsPromise.then((d) => {
           if (stale()) return;
           data.obs = d;
-          if (lastRender && lastRender.type === 'result' && lastRender.data.host === host) fillObservatory(d);
+          if (lastRender && lastRender.type === 'result' && lastRender.data.host === host) {
+            fillObservatory(d);
+            renderFindings(data);
+          }
         });
         crtshPromise.then((crt) => {
           if (stale() || !crt.ok) return;
