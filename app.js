@@ -25,6 +25,7 @@
   const OBS_API = 'https://observatory-api.mdn.mozilla.net/api/v2/scan';
   const CHAIN_API = 'https://tools.trustico.com/api/chain/analyze-url';
   const DNS_API = 'https://cloudflare-dns.com/dns-query';
+  const API_BASE = 'https://ssl.ee/api';
   const SSLLABS_URL = 'https://www.ssllabs.com/ssltest/analyze.html?d=';
 
   /* ---------- i18n ---------- */
@@ -33,6 +34,7 @@
       'meta.title': 'ssl.ee — SSL-sertifikaadi kontrollija',
       'nav.api': 'API',
       'nav.apiAria': 'API dokumentatsioon',
+      'nav.theme': 'Vaheta heledat ja tumedat teemat',
       'hero.badge': 'Tasuta tööriist · andmed Certificate Transparency logidest',
       'hero.title': 'Kas sinu domeeni <span class="grad">SSL-sertifikaat</span> on veel kehtiv?',
       'hero.subtitle': 'Sisesta domeeninimi ja vaata ühe klikiga, kuni sertifikaat kehtib, kes selle välja andis ja milliseid aadresse see kaitseb.',
@@ -111,6 +113,10 @@
       'certdetails.chainColumn': 'Täielik ahel (PEM)',
       'certdetails.chainLoading': 'Laadin ahelat…',
       'certdetails.chainLoadFail': 'Ahela sisu ei õnnestunud laadida. Proovi hiljem uuesti.',
+      'cmd.curl': 'Kopeeri curl-käsk',
+      'cmd.openssl': 'Kopeeri openssl-käsk',
+      'cmd.curlCopied': 'curl-käsk kopeeritud!',
+      'cmd.opensslCopied': 'openssl-käsk kopeeritud!',
       'reminder.button': 'Lisa meeldetuletus kalendrisse aegumise kohta',
       'reminder.ok': 'Kalendrisündmus alla laaditud (.ics).',
       'reminder.title': 'Uuenda SSL-sertifikaat: {host}',
@@ -124,6 +130,19 @@
       'chaincheck.ctFp': 'CT logi: {fp}',
       'chaincheck.chainFp': 'Serveri ahel: {fp}',
       'chaincheck.note': 'Soovitus: kui server teenindab teist sertifikaati, kontrolli serveri või CDN-i konfiguratsiooni.',
+      'chainTree.title': 'Sertifikaadiahela puu',
+      'chainTree.leaf': 'Leht',
+      'chainTree.intermediate': 'Vahepealne CA',
+      'chainTree.root': 'Juursertifikaat',
+      'chainTree.issuedBy': 'Väljaandja: {name}',
+      'chainTree.validUntil': 'Kehtib kuni {date}',
+      'chainTree.expiring': 'Aegub {n} päeva pärast',
+      'chainTree.expired': 'Aegunud',
+      'chainTree.count': '{n} sertifikaati',
+      'chainTree.depth': 'sügavus {n}',
+      'chainTree.loading': 'Laadin sertifikaadiahelat…',
+      'chainTree.fail': 'Ahela andmeid ei õnnestunud laadida.',
+      'chainTree.note': 'Puu näitab serveri saadetud sertifikaate (Trustico SSL Tools). Leht on sinu domeeni sertifikaat, juur on usaldusankur.',
       'dns.title': 'CAA ja DNSSEC',
       'dns.provider': 'Cloudflare DNS-over-HTTPS',
       'dns.caa': 'Lubatud sertifikaadiasutused (CAA)',
@@ -181,6 +200,7 @@
       'meta.title': 'ssl.ee — SSL certificate checker',
       'nav.api': 'API',
       'nav.apiAria': 'API documentation',
+      'nav.theme': 'Switch between light and dark theme',
       'hero.badge': 'Free tool · data from Certificate Transparency logs',
       'hero.title': 'Is your domain\'s <span class="grad">SSL certificate</span> still valid?',
       'hero.subtitle': 'Enter a domain name and instantly see how long the certificate is valid, who issued it, and which hostnames it protects.',
@@ -259,6 +279,10 @@
       'certdetails.chainColumn': 'Full chain (PEM)',
       'certdetails.chainLoading': 'Loading chain…',
       'certdetails.chainLoadFail': 'Could not load the chain content. Please try again later.',
+      'cmd.curl': 'Copy curl command',
+      'cmd.openssl': 'Copy OpenSSL command',
+      'cmd.curlCopied': 'curl command copied!',
+      'cmd.opensslCopied': 'OpenSSL command copied!',
       'reminder.button': 'Add reminder',
       'reminder.ok': 'Calendar event downloaded (.ics).',
       'reminder.title': 'Renew SSL certificate: {host}',
@@ -272,6 +296,19 @@
       'chaincheck.ctFp': 'CT log: {fp}',
       'chaincheck.chainFp': 'Served chain: {fp}',
       'chaincheck.note': 'If the server serves a different certificate, check the server or CDN configuration.',
+      'chainTree.title': 'Certificate chain tree',
+      'chainTree.leaf': 'Leaf',
+      'chainTree.intermediate': 'Intermediate CA',
+      'chainTree.root': 'Root certificate',
+      'chainTree.issuedBy': 'Issued by: {name}',
+      'chainTree.validUntil': 'Valid until {date}',
+      'chainTree.expiring': 'Expires in {n} days',
+      'chainTree.expired': 'Expired',
+      'chainTree.count': '{n} certificates',
+      'chainTree.depth': 'depth {n}',
+      'chainTree.loading': 'Loading certificate chain…',
+      'chainTree.fail': 'Could not load the chain data.',
+      'chainTree.note': 'The tree shows the certificates served by the server (Trustico SSL Tools). The leaf is your domain\'s certificate; the root is the trust anchor.',
       'dns.title': 'CAA and DNSSEC',
       'dns.provider': 'Cloudflare DNS-over-HTTPS',
       'dns.caa': 'Allowed certificate authorities (CAA)',
@@ -331,6 +368,7 @@
   const $ = (id) => document.getElementById(id);
   const els = {
     form: $('check-form'), input: $('domain-input'), btn: $('check-btn'),
+    themeToggle: $('theme-toggle'),
     scan: $('scan-state'), scanHost: $('scan-host'), scanMsg: $('scan-msg'),
     error: $('error-state'), errorMsg: $('error-msg'), errorLinks: $('error-links'),
     card: $('result-card'),
@@ -345,7 +383,10 @@
     certKey: $('cert-key'), certPem: $('cert-pem'), certKind: $('cert-kind'),
     certChainPem: $('cert-chain-pem'), chainPemNote: $('chain-pem-note'),
     copyPem: $('copy-pem'), copyChain: $('copy-chain'), downloadPem: $('download-pem'),
-    downloadChain: $('download-chain'), chainStatus: $('chain-status'),
+    downloadChain: $('download-chain'), copyCurl: $('copy-curl'), copyOpenssl: $('copy-openssl'),
+    chainStatus: $('chain-status'),
+    chainTree: $('chain-tree'), chainTreeList: $('chain-tree-list'),
+    chainTreeMeta: $('chain-tree-meta'), chainTreeNote: $('chain-tree-note'),
     chainCheck: $('chain-check'), chainCheckIcon: $('chain-check').querySelector('.chain-check-icon'),
     chainCheckTitle: $('chain-check-title'), chainCheckText: $('chain-check-text'),
     chainCheckFps: $('chain-check-fps'), chainCheckCt: $('chain-check-ct'),
@@ -369,6 +410,25 @@
   let lastRender = null;   // viimane olek keelevalve jaoks uuesti joonistamiseks
   let checkCounter = 0;    // aegunud asünkroonsete vastuste eiramiseks
   let sansExpanded = false;
+
+  const THEME_KEY = 'ssl-ee-theme';
+
+  function detectTheme() {
+    try { return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; }
+    catch { return 'dark'; }
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    if (els.themeToggle) {
+      els.themeToggle.setAttribute('aria-pressed', String(theme === 'light'));
+      els.themeToggle.setAttribute('aria-label', t('nav.theme'));
+      els.themeToggle.title = t('nav.theme');
+    }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#f5f7fb' : '#04060c');
+    try { localStorage.setItem(THEME_KEY, theme); } catch { /* privaatne režiim */ }
+  }
 
   function detectLang() {
     try {
@@ -614,6 +674,10 @@
     const et = $('lang-et'), en = $('lang-en');
     if (et) et.setAttribute('aria-pressed', String(lang === 'et'));
     if (en) en.setAttribute('aria-pressed', String(lang === 'en'));
+    if (els.themeToggle) {
+      els.themeToggle.setAttribute('aria-label', t('nav.theme'));
+      els.themeToggle.title = t('nav.theme');
+    }
     renderHistory();
     if (lastRender) rerenderDynamic();
   }
@@ -888,6 +952,7 @@
     renderSans(c.dnsNames, host);
     renderCertDetails(c, host);
     renderChainCheck(c, host, data);
+    renderChainTree(host, data);
     renderDns(host, data);
     els.addReminder.hidden = status === 'expired';
     renderTimeline(data.timeline || null);
@@ -1003,6 +1068,25 @@
     showShareStatus(t(ok ? 'share.resultCopied' : 'certdetails.copyFail'), !ok);
   }
 
+  /* ---------- curl / OpenSSL käsud ---------- */
+
+  function curlCommand(host) {
+    return 'curl -fsSL "' + API_BASE + '/pem?d=' + encodeURIComponent(host) + '" -o ' + host + '.pem';
+  }
+
+  function opensslCommand(host) {
+    return 'curl -fsSL "' + API_BASE + '/pem?d=' + encodeURIComponent(host) +
+      '" | openssl x509 -noout -subject -issuer -dates -fingerprint -sha256';
+  }
+
+  async function copyCommand(kind) {
+    const data = lastRender && lastRender.type === 'result' ? lastRender.data : null;
+    if (!data || !data.host) return;
+    const cmd = kind === 'curl' ? curlCommand(data.host) : opensslCommand(data.host);
+    const ok = await copyText(cmd);
+    showShareStatus(t(ok ? 'cmd.' + kind + 'Copied' : 'certdetails.copyFail'), !ok);
+  }
+
   function renderCertDetails(cert, host) {
     const parsed = cert.pemData ? parseX509(cert.pemData) : null;
     if (!parsed) { els.certDetails.hidden = true; return; }
@@ -1045,6 +1129,11 @@
     return typeof fp === 'string' ? fp.replace(/[\s:]/g, '').toLowerCase() : null;
   }
 
+  function nameCn(obj) {
+    if (!obj || typeof obj !== 'object') return '';
+    return obj.commonName || obj.organizationName || obj.organizationalUnitName || obj.countryName || '';
+  }
+
   async function fetchChainData(host) {
     const d = await fetchJson(CHAIN_API, {
       method: 'POST',
@@ -1064,10 +1153,26 @@
       .filter((p) => typeof p === 'string' && p.indexOf('BEGIN CERTIFICATE') !== -1);
     if (!pems.length) return null;
 
+    const last = entries.length - 1;
+    const nodes = entries.map((x, i) => {
+      const info = (x && x.info) || {};
+      const nb = Date.parse(info.notBefore);
+      const na = Date.parse(info.notAfter);
+      return {
+        depth: Number(x && x.depth) || 0,
+        role: i === 0 ? 'leaf' : ((x && x.isTrustAnchor) || i === last ? 'root' : 'intermediate'),
+        subject: nameCn(info.subject) || '–',
+        issuer: nameCn(info.issuer) || '–',
+        notBefore: Number.isFinite(nb) ? nb : null,
+        notAfter: Number.isFinite(na) ? na : null,
+        fp: info.fingerprints ? normalizeFp(info.fingerprints.sha256) : null,
+      };
+    });
+
     const leaf = entries[0];
     const info = leaf && leaf.info;
     const leafFp = info && info.fingerprints && normalizeFp(info.fingerprints.sha256);
-    return { pems, leafFp };
+    return { pems, leafFp, nodes };
   }
 
   // Kord laaditud ahelat kasutatakse uuesti kuvamisel, kopeerimisel, allalaadimisel ja võrdlusel
@@ -1145,6 +1250,83 @@
       if (!lastRender || lastRender.type !== 'result' || lastRender.data.host !== host) return;
       data.chainCheck = res;
       paintChainCheck(res);
+    });
+  }
+
+  /* ---------- Sertifikaadiahela puu ---------- */
+
+  function paintChainTree(nodes) {
+    if (!nodes || !nodes.length) { els.chainTree.hidden = true; return; }
+    els.chainTreeList.textContent = '';
+    const now = Date.now();
+    for (const node of nodes) {
+      const li = document.createElement('li');
+      const expired = Number.isFinite(node.notAfter) && node.notAfter < now;
+      li.className = 'chain-node' + (node.role === 'root' ? ' is-root' : '') + (expired ? ' expired' : '');
+
+      const top = document.createElement('div');
+      top.className = 'chain-node-top';
+      const role = document.createElement('span');
+      role.className = 'chain-role';
+      role.textContent = t('chainTree.' + node.role);
+      const depth = document.createElement('span');
+      depth.className = 'chain-depth';
+      depth.textContent = t('chainTree.depth', { n: node.depth });
+      top.append(role, depth);
+
+      const subject = document.createElement('p');
+      subject.className = 'chain-subject';
+      subject.textContent = node.subject;
+
+      const issuer = document.createElement('p');
+      issuer.className = 'chain-issuer';
+      issuer.textContent = t('chainTree.issuedBy', { name: node.issuer });
+
+      const valid = document.createElement('p');
+      valid.className = 'chain-valid';
+      if (Number.isFinite(node.notAfter)) {
+        const label = document.createElement('span');
+        label.textContent = t('chainTree.validUntil', { date: '' }).trim() + ': ';
+        const date = document.createElement('strong');
+        date.textContent = fmtDate(node.notAfter);
+        valid.append(label, date);
+        const days = Math.ceil((node.notAfter - now) / 864e5);
+        if (days < 0) valid.append(document.createTextNode(' · ' + t('chainTree.expired')));
+        else if (days <= CONFIG.warnDays) valid.append(document.createTextNode(' · ' + t('chainTree.expiring', { n: days })));
+      } else {
+        const unknown = document.createElement('strong');
+        unknown.textContent = '–';
+        valid.appendChild(unknown);
+      }
+
+      const fp = document.createElement('p');
+      fp.className = 'chain-fp';
+      fp.textContent = node.fp ? 'SHA-256 · ' + node.fp.slice(0, 24) + '…' : '';
+      fp.hidden = !node.fp;
+
+      li.append(top, subject, issuer, valid, fp);
+      els.chainTreeList.appendChild(li);
+    }
+    els.chainTreeMeta.textContent = t('chainTree.count', { n: nodes.length });
+    els.chainTreeNote.textContent = t('chainTree.note');
+    els.chainTreeNote.hidden = false;
+    els.chainTree.hidden = false;
+  }
+
+  function renderChainTree(host, data) {
+    if (data.chainTree !== undefined) { paintChainTree(data.chainTree); return; }
+    els.chainTree.hidden = true;
+    if (!CONFIG.chain || !host) return;
+    els.chainTreeList.textContent = '';
+    els.chainTreeMeta.textContent = t('chainTree.loading');
+    els.chainTreeNote.hidden = true;
+    els.chainTree.hidden = false;
+    loadChainData(host).then((d) => {
+      if (!lastRender || lastRender.type !== 'result' || lastRender.data.host !== host) return;
+      const nodes = d && d.nodes && d.nodes.length ? d.nodes : null;
+      data.chainTree = nodes;
+      if (!nodes) { els.chainTree.hidden = true; return; }
+      paintChainTree(nodes);
     });
   }
 
@@ -1581,6 +1763,13 @@
 
   els.copyResult.addEventListener('click', copyCurrentResult);
 
+  els.copyCurl.addEventListener('click', () => copyCommand('curl'));
+  els.copyOpenssl.addEventListener('click', () => copyCommand('openssl'));
+
+  if (els.themeToggle) {
+    els.themeToggle.addEventListener('click', () => applyTheme(detectTheme() === 'light' ? 'dark' : 'light'));
+  }
+
   els.addReminder.addEventListener('click', downloadReminder);
 
   els.downloadPem.addEventListener('click', () => {
@@ -1602,6 +1791,7 @@
   els.footerYear.textContent = '© ' + new Date().getFullYear() + ' ssl.ee';
 
   /* ---------- Käivitus ---------- */
+  applyTheme(detectTheme());
   applyI18n();
 
   // Jagatav link: ?d=domeen.ee käivitab kontrolli automaatselt

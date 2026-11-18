@@ -1,6 +1,6 @@
 # ssl.ee — SSL-sertifikaadi kontrollija
 
-Tume ja modernne veebileht, kus saab ühe klikiga kontrollida domeeni
+Tume (või heledaks lülitatav) ja modernne veebileht, kus saab ühe klikiga kontrollida domeeni
 SSL/TLS-sertifikaadi kehtivust: kuni see kehtib, kes selle välja andis ja
 milliseid aadresse see kaitseb.
 
@@ -9,7 +9,7 @@ milliseid aadresse see kaitseb.
 | Fail           | Otstarve                                       |
 | -------------- | ---------------------------------------------- |
 | `index.html`   | Lehe struktuur (eesti + inglise keeles)        |
-| `styles.css`   | Tume visuaal (rohelsed/sinised aktsendid)     |
+| `styles.css`   | Tume/hele visuaal (rohelsed/sinised aktsendid)|
 | `app.js`       | Kontrollimise loogika, i18n, ajalugu          |
 | `api-docs.html`| API dokumentatsioon (ET/EN), link lehe päises  |
 | `api/worker.js`| Eraldi Cloudflare Worker: PEM / täielik ahel   |
@@ -71,6 +71,16 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
     (lubatud sertifikaadiasutused, sh `issuewild`) ja DNSSEC-i autentimisolek
     (`AD` lipp). Andmed kuvatakse eraldi panelina; päringu ebaõnnestumisel
     plokk peidetakse. Keelamiseks muuda `CONFIG.dns = false`.
+13. **Ahela visuaalne puu** – Trustico vastusest joonistatakse vertikaalne puu
+    leht → vahepealsed CA-d → juur. Iga samm näitab subjekti, väljaandjat,
+    kehtivuse lõppu ja lühikest SHA-256 sõrmejälge. Andmed laaditakse samast
+    vahemällu salvestatud ahelapäringust, seega ei teki täiendavat võrguliiklust.
+14. **curl / OpenSSL käsud** – PEM-i ploki nupud kopeerivad otse kasutatavad
+    käsud: `curl` laeb sertifikaadi eraldi API-st (`/api/pem?d=...`) `.pem`-faili,
+    OpenSSL-käsk suunab sama PEM-i toru kaudu `openssl x509` analüüsiks.
+15. **Hele/tume teema** – päises olev nupp lülitab teemat; valik salvestatakse
+    `localStorage`'i (`ssl-ee-theme`) ja rakendatakse enne CSS-i laadimist, et
+    vältida vilksatust. Vaikimisi on endiselt tume teema.
 
 Täpseks kättesaamise analüüsiks (protokollid, šifrid, usaldusahel) suunab leht
 kasutaja SSL Labsi raportile.

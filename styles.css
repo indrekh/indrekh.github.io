@@ -24,6 +24,32 @@
   --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
 }
 
+/* Hele teema — kasutaja valik salvestatakse localStorage'i */
+:root[data-theme="light"] {
+  --bg: #f5f7fb;
+  --panel: rgba(15, 23, 42, .035);
+  --panel-strong: rgba(15, 23, 42, .075);
+  --border: rgba(15, 23, 42, .13);
+  --border-strong: rgba(15, 23, 42, .24);
+  --text: #0f172a;
+  --muted: #4e6079;
+  --faint: #52637d;   /* väiksem tekst peab heledal taustal olema tumedam (WCAG AA) */
+  --green: #047857;
+  --cyan: #0e7490;
+  --blue: #2563eb;
+  --amber: #b45309;
+  --red: #b91c1c;
+  --shadow: 0 18px 50px rgba(15, 23, 42, .12);
+}
+
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(900px 480px at 15% -5%, rgba(16, 185, 129, .12), transparent 60%),
+    radial-gradient(1000px 520px at 85% 0%, rgba(56, 189, 248, .12), transparent 55%),
+    radial-gradient(800px 600px at 50% 110%, rgba(34, 211, 238, .07), transparent 60%),
+    var(--bg);
+}
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -79,7 +105,20 @@ body {
   border: 1px solid rgba(52, 211, 153, .3);
   background: rgba(52, 211, 153, .08); transition: .18s;
 }
-.api-link:hover { background: rgba(52, 211, 153, .18); color: #fff; border-color: rgba(52, 211, 153, .55); }
+.api-link:hover { background: rgba(52, 211, 153, .18); color: var(--text); border-color: rgba(52, 211, 153, .55); }
+
+.theme-toggle {
+  appearance: none; cursor: pointer; flex: none;
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--panel); border: 1px solid var(--border-strong);
+  color: var(--muted); transition: .18s;
+}
+.theme-toggle:hover { color: var(--green); border-color: rgba(52, 211, 153, .55); background: rgba(52, 211, 153, .1); }
+.theme-toggle svg { width: 17px; height: 17px; }
+.theme-toggle .icon-moon { display: none; }
+:root[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+:root[data-theme="light"] .theme-toggle .icon-moon { display: block; }
 
 .lang-switch {
   display: inline-flex;
@@ -361,6 +400,11 @@ h1 {
   background: rgba(96, 165, 250, .1); border-color: rgba(96, 165, 250, .3); color: var(--blue);
 }
 .dl-btn:hover { background: rgba(96, 165, 250, .2); }
+.cmd-btn {
+  background: rgba(148, 163, 184, .1);
+  border-color: var(--border-strong); color: var(--muted);
+}
+.cmd-btn:hover { background: rgba(148, 163, 184, .2); color: var(--text); }
 .chain-status {
   margin: 8px 14px 0; font-size: 12px; color: var(--muted);
 }
@@ -414,6 +458,63 @@ h1 {
   overflow-wrap: anywhere;
 }
 .chain-check-fps span { display: block; }
+
+/* ---------- Sertifikaadiahela puu ---------- */
+
+.chain-tree-panel {
+  margin-top: 20px; padding: 16px 20px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 16px;
+  animation: fadeUp .35s ease both;
+}
+.chain-tree-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 6px;
+}
+.chain-tree-head h3 { margin: 0; font-size: 15px; }
+.chain-tree-meta { font-size: 12px; color: var(--faint); }
+.chain-tree-list {
+  list-style: none; margin: 0; padding: 0 0 0 28px;
+  position: relative;
+}
+.chain-tree-list::before {
+  content: ''; position: absolute; left: 9px; top: 14px; bottom: 14px;
+  width: 2px; background: var(--border-strong);
+}
+.chain-node {
+  position: relative; margin-top: 12px; padding: 12px 14px;
+  background: rgba(2, 6, 14, .28);
+  border: 1px solid var(--border); border-radius: 12px;
+  min-width: 0;
+}
+.chain-node::before {
+  content: ''; position: absolute; left: -23px; top: 20px;
+  width: 14px; height: 2px; background: var(--border-strong);
+}
+.chain-node::after {
+  content: ''; position: absolute; left: -28px; top: 16px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--blue); box-shadow: 0 0 0 3px var(--bg);
+}
+.chain-node:first-child::after { background: var(--green); }
+.chain-node.is-root::after { background: var(--amber); }
+.chain-node-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap;
+}
+.chain-role {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--blue);
+}
+.chain-node:first-child .chain-role { color: var(--green); }
+.chain-node.is-root .chain-role { color: var(--amber); }
+.chain-depth { font: 600 10.5px/1 var(--mono); color: var(--faint); }
+.chain-subject { margin: 6px 0 4px; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.chain-issuer, .chain-valid { margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted); overflow-wrap: anywhere; }
+.chain-valid strong { color: var(--text); font-weight: 600; }
+.chain-node.expired .chain-valid strong { color: var(--red); }
+.chain-fp { margin-top: 7px; font: 11px/1.5 var(--mono); color: var(--faint); overflow-wrap: anywhere; }
+.chain-tree-note { margin: 12px 0 0; font-size: 12px; line-height: 1.5; color: var(--faint); }
 
 .timeline { margin-top: 22px; padding-top: 20px; border-top: 1px dashed var(--border); }
 .timeline-summary { margin: 0; font-size: 13px; color: var(--muted); }
@@ -705,6 +806,19 @@ h1 {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
 }
+
+/* ---------- Heleda teema täpsustused ---------- */
+
+:root[data-theme="light"] .site-header { background: rgba(245, 247, 251, .86); }
+:root[data-theme="light"] .check-form { background: rgba(255, 255, 255, .94); }
+:root[data-theme="light"] .result-card { background: linear-gradient(180deg, rgba(15, 23, 42, .035), rgba(15, 23, 42, .015)); }
+:root[data-theme="light"] .check-btn { color: #fff; }
+:root[data-theme="light"] .domain-input::placeholder { color: #94a3b8; }
+:root[data-theme="light"] .dns-item,
+:root[data-theme="light"] .chain-node { background: rgba(255, 255, 255, .7); }
+:root[data-theme="light"] .pem-code { color: #334155; }
+:root[data-theme="light"] .san-list li { color: #334155; }
+:root[data-theme="light"] .pem-block summary:hover { background: rgba(96, 165, 250, .08); }
 
 /* ---------- Responsive ---------- */
 
