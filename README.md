@@ -55,6 +55,23 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
    kas ühe sertifikaadi PEM-i või täieliku ahela. Põhileht jääb staatiliseks.
    Dokumentatsioon ja curl-näited asuvad lehel `api-docs.html` (link päises).
 
+10. **ICS meeldetuletus** – nupp „Lisa meeldetuletus kalendrisse aegumise kohta" loob brauseris
+    kalendrisündmuse 30 päeva enne sertifikaadi aegumist (`.ics`, koos
+    `VALARM`-iga) ja laadib selle alla kui `domeen-ssl-reminder.ics`. Serverit
+    ega e-posti aadressi ei vaja.
+11. **CT logi vs serveri ahel** – võrdleme Cert Spotteri lehe SHA-256 sõrmejälge
+    Trustico ahela lehega (`depth: 0`). Kui server teenindab teist sertifikaati,
+    kuvatakse soovituslik hoiatus koos mõlema sõrmejäljega. Vastasel juhul
+    kinnitame, et lehed ühtivad. Kui usaldusahelat ei saada, kuvatakse
+    neutraalne teade, et võrdlus ei õnnestunud.
+    Trustico tagastab sõrmejälje otse; varumeetodina arvutatakse see PEM-ist
+    brauseri `crypto.subtle` abil. Ainult crt.sh varuallika kasutamisel (puudub
+    sõrmejälg) märgime, et võrdlus pole võimalik.
+12. **CAA ja DNSSEC** – Cloudflare DNS-over-HTTPS kaudu loetakse CAA-kirjed
+    (lubatud sertifikaadiasutused, sh `issuewild`) ja DNSSEC-i autentimisolek
+    (`AD` lipp). Andmed kuvatakse eraldi panelina; päringu ebaõnnestumisel
+    plokk peidetakse. Keelamiseks muuda `CONFIG.dns = false`.
+
 Täpseks kättesaamise analüüsiks (protokollid, šifrid, usaldusahel) suunab leht
 kasutaja SSL Labsi raportile.
 
@@ -105,3 +122,5 @@ Täpsemad näited, parameetrid ja veakoodid: `api-docs.html`.
   mõnikord varasemat või muud – seepärast on lehel ka SSL Labsi süvalink.
 - Keelevalik (ET/EN) jäetakse meelde `localStorage`-i, ajalugu samuti.
 - Keeeltõlkeid saab täiendada `app.js` failis sõnastikes `I18N.et` / `I18N.en`.
+- ICS-fail ja kõik uued kontrollid (CT/ahela võrdlus, CAA/DNSSEC) töötavad
+  ainult brauseris – ükski domeen ega kalendriandmete sisu ei lähe ssl.ee serverisse.

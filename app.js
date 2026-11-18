@@ -2,7 +2,8 @@
  * Staatiline leht: kõik päringud käivad kasutaja brauseris.
  * Andmeallikad: Cert Spotter (CT logid, primaarne), crt.sh (varu),
  * MDN HTTP Observatory (HTTP turvapäiste skoor, boonus),
- * Trustico SSL Tools (täieliku ahela allalaadimine).
+ * Trustico SSL Tools (täielik ahel + CT/ahela võrdlus),
+ * Cloudflare DNS-over-HTTPS (CAA ja DNSSEC).
  */
 (() => {
   'use strict';
@@ -12,15 +13,18 @@
     warnDays: 30,        // alla selle jäänud päevade arv = hoiatus
     sanPreview: 8,       // mitu domeeni enne "näita kõiki"
     historyMax: 8,
-    timeouts: { certspotter: 15000, crtsh: 30000, observatory: 20000, chain: 25000 },
+    timeouts: { certspotter: 15000, crtsh: 30000, observatory: 20000, chain: 25000, dns: 10000 },
     observatory: true,   // HTTP turvapäiste skoor (MDN HTTP Observatory)
     chain: true,         // täieliku sertifikaadiahela allalaadimine (Trustico SSL Tools)
+    dns: true,           // CAA ja DNSSEC (Cloudflare DNS-over-HTTPS)
+    reminderDays: 30,    // meeldetuletus enne sertifikaadi aegumist
   };
 
   const CS_API = 'https://api.certspotter.com/v1/issuances';
   const CRTSH_API = 'https://crt.sh/';
   const OBS_API = 'https://observatory-api.mdn.mozilla.net/api/v2/scan';
   const CHAIN_API = 'https://tools.trustico.com/api/chain/analyze-url';
+  const DNS_API = 'https://cloudflare-dns.com/dns-query';
   const SSLLABS_URL = 'https://www.ssllabs.com/ssltest/analyze.html?d=';
 
   /* ---------- i18n ---------- */
@@ -107,6 +111,31 @@
       'certdetails.chainColumn': 'Täielik ahel (PEM)',
       'certdetails.chainLoading': 'Laadin ahelat…',
       'certdetails.chainLoadFail': 'Ahela sisu ei õnnestunud laadida. Proovi hiljem uuesti.',
+      'reminder.button': 'Lisa meeldetuletus kalendrisse aegumise kohta',
+      'reminder.ok': 'Kalendrisündmus alla laaditud (.ics).',
+      'reminder.title': 'Uuenda SSL-sertifikaat: {host}',
+      'reminder.desc': 'Sertifikaadi {host} kehtivus lõppeb {date}. Uuenda vähemalt 30 päeva enne aegumist.',
+      'reminder.alarm': 'Uuenda SSL-sertifikaat: {host}',
+      'chaincheck.title': 'CT logi ja serveri ahel',
+      'chaincheck.ok': 'CT logi leht ühtib serveri saadetud lehega.',
+      'chaincheck.mismatch': 'Tähelepanu: server teenindab teist lehesertifikaati kui CT logi.',
+      'chaincheck.noFp': 'Võrdlus ei ole võimalik – CT logi sõrmejälg puudub.',
+      'chaincheck.unknown': 'Võrdlus ei õnnestunud – serveri ahelat või sõrmejälge ei saadud kätte.',
+      'chaincheck.ctFp': 'CT logi: {fp}',
+      'chaincheck.chainFp': 'Serveri ahel: {fp}',
+      'chaincheck.note': 'Soovitus: kui server teenindab teist sertifikaati, kontrolli serveri või CDN-i konfiguratsiooni.',
+      'dns.title': 'CAA ja DNSSEC',
+      'dns.provider': 'Cloudflare DNS-over-HTTPS',
+      'dns.caa': 'Lubatud sertifikaadiasutused (CAA)',
+      'dns.dnssec': 'DNSSEC',
+      'dns.caaNone': 'CAA-kirjet pole – väljaandmise piiranguid pole avaldatud.',
+      'dns.caaRecord': '{n} kirje',
+      'dns.caaRecords': '{n} kirjet',
+      'dns.caaWild': 'aldomeenid',
+      'dns.dnssecOn': 'Kasutusel · AD = true',
+      'dns.dnssecOff': 'Ei ole tuvastatud · AD = false',
+      'dns.note': 'CAA määrab, milline asutus tohib sellele domeenile sertifikaadi välja anda. DNSSEC kaitseb DNS-vastuseid võltsimise eest.',
+      'dns.fail': 'DNS-i andmed pole praegu saadaval. Proovi hiljem uuesti.',
       'timeline.title': 'Väljaandmise ajalugu',
       'timeline.summary': 'Viimase 12 kuu jooksul {n} väljaannet',
       'timeline.issuers': '{n} väljaandjat',
@@ -138,7 +167,7 @@
       'faq1.q': 'Mida see leht teeb?',
       'faq1.a': 'ssl.ee kontrollib domeeni SSL/TLS-sertifikaadi kehtivust: kuni see kehtib, kes selle välja andis ja milliseid aadresse see kaitseb. Piisab domeeninimest – vastus on olemas mõne sekundiga.',
       'faq2.q': 'Kust andmed tulevad?',
-      'faq2.a': 'Sertifikaadi andmed loetakse Certificate Transparency logidest teenuse Cert Spotter kaudu (varuallikaks crt.sh), HTTP turvapäiste skoor tuleb MDN HTTP Observatoryst ja täielik sertifikaadiahel Trustico SSL Toolsi kaudu. Kõik päringud käivad otse sinu brauseris.',
+      'faq2.a': 'Sertifikaadi andmed loetakse Certificate Transparency logidest teenuse Cert Spotter kaudu (varuallikaks crt.sh), HTTP turvapäiste skoor tuleb MDN HTTP Observatoryst, täielik sertifikaadiahel ja CT/ahela võrdlus Trustico SSL Toolsi kaudu ning CAA ja DNSSEC Cloudflare DNS-over-HTTPS-i kaudu. Kõik päringud käivad otse sinu brauseris.',
       'faq3.q': 'Miks kuvatud info võib tegelikust erineda?',
       'faq3.a': 'CT logidest kuvatakse uusim välja antud sertifikaat. Server või CDN teenindab mõnikord varasemat või muud sertifikaati – täielikuks analüüsiks (sh protokollid ja šifrid) kasuta allpool olevat SSL Labsi linki.',
       'faq4.q': 'Mis tähendab „aegub varsti“?',
@@ -146,7 +175,7 @@
       'faq5.q': 'Kas kasutamine on tasuta?',
       'faq5.a': 'Jah. ssl.ee on tasuta, ei nõua registreerimist ega kogu isikuandmeid. Küll võivad kehtida andmeallikate endi päringupiirangud.',
       'footer.tagline': 'Privaatsust austav SSL-sertifikaadi kontrollija – kõik päringud käivad sinu brauseris.',
-      'footer.sources': 'Andmeallikad: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico',
+      'footer.sources': 'Andmeallikad: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico · Cloudflare DNS',
     },
     en: {
       'meta.title': 'ssl.ee — SSL certificate checker',
@@ -230,6 +259,31 @@
       'certdetails.chainColumn': 'Full chain (PEM)',
       'certdetails.chainLoading': 'Loading chain…',
       'certdetails.chainLoadFail': 'Could not load the chain content. Please try again later.',
+      'reminder.button': 'Add reminder',
+      'reminder.ok': 'Calendar event downloaded (.ics).',
+      'reminder.title': 'Renew SSL certificate: {host}',
+      'reminder.desc': 'The certificate for {host} expires on {date}. Renew at least 30 days before expiry.',
+      'reminder.alarm': 'Renew SSL certificate: {host}',
+      'chaincheck.title': 'CT log vs served chain',
+      'chaincheck.ok': 'The CT-log leaf matches the leaf served by the server.',
+      'chaincheck.mismatch': 'Advisory: the server serves a different leaf certificate than the CT log.',
+      'chaincheck.noFp': 'Comparison is not possible – no CT-log fingerprint available.',
+      'chaincheck.unknown': 'Comparison failed – the served chain or its fingerprint was unavailable.',
+      'chaincheck.ctFp': 'CT log: {fp}',
+      'chaincheck.chainFp': 'Served chain: {fp}',
+      'chaincheck.note': 'If the server serves a different certificate, check the server or CDN configuration.',
+      'dns.title': 'CAA and DNSSEC',
+      'dns.provider': 'Cloudflare DNS-over-HTTPS',
+      'dns.caa': 'Allowed certificate authorities (CAA)',
+      'dns.dnssec': 'DNSSEC',
+      'dns.caaNone': 'No CAA record – no issuance restrictions are published.',
+      'dns.caaRecord': '{n} record',
+      'dns.caaRecords': '{n} records',
+      'dns.caaWild': 'wildcard',
+      'dns.dnssecOn': 'Enabled · AD = true',
+      'dns.dnssecOff': 'Not detected · AD = false',
+      'dns.note': 'CAA defines which authority may issue a certificate for the domain. DNSSEC protects DNS answers from tampering.',
+      'dns.fail': 'DNS data is unavailable right now. Please try again later.',
       'timeline.title': 'Issuance history',
       'timeline.summary': '{n} issuances in the last 12 months',
       'timeline.issuers': '{n} issuers',
@@ -261,7 +315,7 @@
       'faq1.q': 'What does this site do?',
       'faq1.a': 'ssl.ee checks a domain\'s SSL/TLS certificate validity: how long it is valid, who issued it, and which hostnames it protects. Just type a domain name – you get an answer within seconds.',
       'faq2.q': 'Where does the data come from?',
-      'faq2.a': 'Certificate data is read from Certificate Transparency logs via Cert Spotter (with crt.sh as backup); the HTTP security-header score comes from MDN HTTP Observatory and the full certificate chain from Trustico SSL Tools. All requests run directly in your browser.',
+      'faq2.a': 'Certificate data is read from Certificate Transparency logs via Cert Spotter (with crt.sh as backup); the HTTP security-header score comes from MDN HTTP Observatory, the full chain and CT/chain comparison from Trustico SSL Tools, and CAA/DNSSEC from Cloudflare DNS-over-HTTPS. All requests run directly in your browser.',
       'faq3.q': 'Why might the information differ from reality?',
       'faq3.a': 'We show the most recently issued certificate from the CT logs. A server or CDN may sometimes serve a different (e.g. older) certificate – for a full analysis (protocols and ciphers included) use the SSL Labs link below.',
       'faq4.q': 'What does "expiring soon" mean?',
@@ -269,7 +323,7 @@
       'faq5.q': 'Is it free to use?',
       'faq5.a': 'Yes. ssl.ee is free, requires no sign-up and collects no personal data. The upstream data sources may apply their own rate limits.',
       'footer.tagline': 'A privacy-respecting SSL certificate checker – every query runs in your browser.',
-      'footer.sources': 'Data sources: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico',
+      'footer.sources': 'Data sources: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico · Cloudflare DNS',
     },
   };
 
@@ -292,13 +346,19 @@
     certChainPem: $('cert-chain-pem'), chainPemNote: $('chain-pem-note'),
     copyPem: $('copy-pem'), copyChain: $('copy-chain'), downloadPem: $('download-pem'),
     downloadChain: $('download-chain'), chainStatus: $('chain-status'),
+    chainCheck: $('chain-check'), chainCheckIcon: $('chain-check').querySelector('.chain-check-icon'),
+    chainCheckTitle: $('chain-check-title'), chainCheckText: $('chain-check-text'),
+    chainCheckFps: $('chain-check-fps'), chainCheckCt: $('chain-check-ct'),
+    chainCheckChain: $('chain-check-chain'),
+    dnsPanel: $('dns-panel'), dnsCaa: $('dns-caa'), dnsDnssec: $('dns-dnssec'), dnsNote: $('dns-note'),
     timeline: $('timeline'), timelineSummary: $('timeline-summary'),
     timelineTrack: $('timeline-track'), timelineNote: $('timeline-note'),
     sanTitle: $('san-title'), sanList: $('san-list'), sanToggle: $('san-toggle'),
     badges: $('badges'),
     obs: $('obs'), obsGrade: $('obs-grade'), obsScore: $('obs-score'), obsLink: $('obs-link'),
     sourceNote: $('source-note'), linkSsllabs: $('link-ssllabs'), linkCrtsh: $('link-crtsh'),
-    shareLink: $('share-link'), copyResult: $('copy-result'), shareStatus: $('share-status'),
+    shareLink: $('share-link'), copyResult: $('copy-result'), addReminder: $('add-reminder'),
+    shareStatus: $('share-status'),
     history: $('history'), historyList: $('history-list'), historyClear: $('history-clear'),
     footerYear: $('footer-year'),
   };
@@ -827,6 +887,9 @@
 
     renderSans(c.dnsNames, host);
     renderCertDetails(c, host);
+    renderChainCheck(c, host, data);
+    renderDns(host, data);
+    els.addReminder.hidden = status === 'expired';
     renderTimeline(data.timeline || null);
 
     // Tühistamise märge
@@ -978,7 +1041,11 @@
     els.chainStatus.hidden = !msg;
   }
 
-  async function fetchChain(host) {
+  function normalizeFp(fp) {
+    return typeof fp === 'string' ? fp.replace(/[\s:]/g, '').toLowerCase() : null;
+  }
+
+  async function fetchChainData(host) {
     const d = await fetchJson(CHAIN_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -988,23 +1055,178 @@
     if (!d || d.success !== true) return null;
     const chain = d.data && d.data.chain;
     if (!Array.isArray(chain)) return null;
-    const pems = chain
+
+    // Trustico tagastab depth=0 lehena — järjestame kindluse mõttes uuesti
+    const entries = chain.slice().sort((a, b) =>
+      (Number(a && a.depth) || 0) - (Number(b && b.depth) || 0));
+    const pems = entries
       .map((x) => x && x.certificate)
       .filter((p) => typeof p === 'string' && p.indexOf('BEGIN CERTIFICATE') !== -1);
-    return pems.length ? pems : null;
+    if (!pems.length) return null;
+
+    const leaf = entries[0];
+    const info = leaf && leaf.info;
+    const leafFp = info && info.fingerprints && normalizeFp(info.fingerprints.sha256);
+    return { pems, leafFp };
   }
 
-  // Kord laaditud ahelat kasutatakse uuesti kuvamisel, kopeerimisel ja allalaadimisel
+  // Kord laaditud ahelat kasutatakse uuesti kuvamisel, kopeerimisel, allalaadimisel ja võrdlusel
   const chainCache = new Map();
 
-  function loadChain(host) {
+  function loadChainData(host) {
     if (!host) return Promise.resolve(null);
     if (chainCache.has(host)) return chainCache.get(host);
-    const p = (CONFIG.chain ? fetchChain(host) : Promise.resolve(null))
-      .then((pems) => (pems && pems.length ? pems : null))
+    const p = (CONFIG.chain ? fetchChainData(host) : Promise.resolve(null))
+      .then((d) => (d && d.pems && d.pems.length ? d : null))
       .catch(() => null);
     chainCache.set(host, p);
     return p;
+  }
+
+  function loadChain(host) {
+    return loadChainData(host).then((d) => (d ? d.pems : null));
+  }
+
+  /* ---------- CT logi leht vs serveri saadetud leht ---------- */
+
+  const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.4-3.4 8.5-8 9-4.6-.5-8-4.6-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>';
+  const ICON_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 4.3L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17v.01"/></svg>';
+  const ICON_INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8v.01"/></svg>';
+
+  function pemToDer(pem) {
+    const m = String(pem).match(/-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/);
+    return m ? base64ToBytes(m[1].replace(/\s+/g, '')) : null;
+  }
+
+  async function sha256Hex(bytes) {
+    if (!bytes || !globalThis.crypto || !crypto.subtle) return null;
+    try {
+      const buf = await crypto.subtle.digest('SHA-256', bytes);
+      return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    } catch { return null; }
+  }
+
+  async function compareChain(cert, host) {
+    const chain = await loadChainData(host);
+    if (!chain) return { kind: 'unknown' };
+    if (!cert || !cert.sha256) return { kind: 'noFp' };
+
+    const ct = normalizeFp(cert.sha256);
+    // Trustico annab sõrmejälje kaasa; varumeetodina arvutame selle PEM-ist
+    const served = chain.leafFp || await sha256Hex(pemToDer(chain.pems[0]));
+    if (!ct || !served) return { kind: 'unknown' };
+    const leaf = normalizeFp(served);
+    return { kind: ct === leaf ? 'ok' : 'mismatch', ct, chain: leaf };
+  }
+
+  function paintChainCheck(res) {
+    if (!res) { els.chainCheck.hidden = true; return; }
+    els.chainCheck.className = 'chain-check kind-' + res.kind;
+    els.chainCheckIcon.innerHTML = res.kind === 'mismatch' ? ICON_WARN
+      : (res.kind === 'ok' ? ICON_CHECK : ICON_INFO);
+    els.chainCheckTitle.textContent = t('chaincheck.title');
+    els.chainCheckText.textContent = t('chaincheck.' + res.kind) +
+      (res.kind === 'mismatch' ? ' ' + t('chaincheck.note') : '');
+    if (res.ct && res.chain) {
+      els.chainCheckCt.textContent = t('chaincheck.ctFp', { fp: res.ct });
+      els.chainCheckChain.textContent = t('chaincheck.chainFp', { fp: res.chain });
+      els.chainCheckFps.hidden = false;
+    } else {
+      els.chainCheckFps.hidden = true;
+    }
+    els.chainCheck.hidden = false;
+  }
+
+  function renderChainCheck(cert, host, data) {
+    if (data.chainCheck !== undefined) { paintChainCheck(data.chainCheck); return; }
+    els.chainCheck.hidden = true;
+    if (!CONFIG.chain || !host) return;
+    compareChain(cert, host).then((res) => {
+      if (!lastRender || lastRender.type !== 'result' || lastRender.data.host !== host) return;
+      data.chainCheck = res;
+      paintChainCheck(res);
+    });
+  }
+
+  /* ---------- CAA ja DNSSEC (Cloudflare DNS-over-HTTPS) ---------- */
+
+  function parseCaaRecord(data) {
+    const m = String(data).match(/^\s*(\d+)\s+([a-z0-9-]+)\s+"([\s\S]*)"\s*$/i);
+    if (!m) return null;
+    return { flags: Number(m[1]), tag: m[2].toLowerCase(), value: m[3] };
+  }
+
+  async function queryDns(host) {
+    const url = DNS_API + '?name=' + encodeURIComponent(host) + '&type=CAA';
+    const d = await fetchJson(url, {
+      headers: { Accept: 'application/dns-json' },
+      timeout: CONFIG.timeouts.dns,
+    });
+    if (!d || typeof d !== 'object') return null;
+
+    const seen = new Set();
+    const caa = (Array.isArray(d.Answer) ? d.Answer : [])
+      .filter((a) => a && Number(a.type) === 257 && typeof a.data === 'string')
+      .map((a) => parseCaaRecord(a.data))
+      .filter((r) => {
+        if (!r) return false;
+        const key = r.tag + '|' + r.value;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+    // AD = Authentic Data: Cloudflare on DNSSEC-i ahelat kontrollinud
+    return { caa, ad: d.AD === true, status: d.Status };
+  }
+
+  const dnsCache = new Map();
+
+  function loadDns(host) {
+    if (!host) return Promise.resolve(null);
+    if (dnsCache.has(host)) return dnsCache.get(host);
+    const p = (CONFIG.dns ? queryDns(host) : Promise.resolve(null)).catch(() => null);
+    dnsCache.set(host, p);
+    return p;
+  }
+
+  function paintDns(res) {
+    if (!res) { els.dnsPanel.hidden = true; return; }
+    els.dnsCaa.textContent = '';
+    if (!res.caa.length) {
+      els.dnsCaa.textContent = t('dns.caaNone');
+    } else {
+      for (const c of res.caa) {
+        const chip = document.createElement('span');
+        chip.className = 'dns-chip' + (c.tag === 'issuewild' ? ' wild' : '');
+        chip.textContent = c.tag + ': ' + c.value;
+        els.dnsCaa.appendChild(chip);
+      }
+      const count = document.createElement('span');
+      count.className = 'dns-count';
+      const n = res.caa.length;
+      count.textContent = '· ' + t(n === 1 ? 'dns.caaRecord' : 'dns.caaRecords', { n });
+      els.dnsCaa.appendChild(count);
+    }
+    els.dnsDnssec.textContent = '';
+    const state = document.createElement('span');
+    state.className = res.ad ? 'dns-yes' : 'dns-no';
+    state.textContent = t(res.ad ? 'dns.dnssecOn' : 'dns.dnssecOff');
+    els.dnsDnssec.appendChild(state);
+    els.dnsNote.textContent = t('dns.note');
+    els.dnsNote.hidden = false;
+    els.dnsPanel.hidden = false;
+  }
+
+  function renderDns(host, data) {
+    if (data.dns !== undefined) { paintDns(data.dns); return; }
+    els.dnsPanel.hidden = true;
+    if (!CONFIG.dns || !host) return;
+    loadDns(host).then((res) => {
+      if (!lastRender || lastRender.type !== 'result' || lastRender.data.host !== host) return;
+      data.dns = res;
+      paintDns(res);
+    });
   }
 
   async function copyText(text) {
@@ -1031,8 +1253,8 @@
     }
   }
 
-  function savePemFile(text, filename) {
-    const blob = new Blob([text.replace(/\s+$/, '') + '\n'], { type: 'application/x-pem-file' });
+  function saveTextFile(text, filename, mime) {
+    const blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1041,6 +1263,81 @@
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+
+  function savePemFile(text, filename) {
+    saveTextFile(text.replace(/\s+$/, '') + '\n', filename, 'application/x-pem-file');
+  }
+
+  /* ---------- .ics meeldetuletus ---------- */
+
+  function icsStamp(ms) {
+    // toISOString() annab juba Z-liite (nt 2026-11-17T23:34:29.123Z) — ära lisa teist
+    return new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  }
+
+  function icsEscape(s) {
+    return String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;')
+      .replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+  }
+
+  // RFC 5545: pikad read tuleb murda 75 okteti juures, jätkurea algab tühikuga
+  function icsFold(line) {
+    let total = 0;
+    for (const ch of line) {
+      const c = ch.codePointAt(0);
+      total += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
+    }
+    if (total <= 75) return line;
+
+    const out = [];
+    let cur = '', budget = 75;
+    for (const ch of line) {
+      const c = ch.codePointAt(0);
+      const size = c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
+      if (size > budget) { out.push(cur); cur = ' '; budget = 74; }
+      cur += ch;
+      budget -= size;
+    }
+    out.push(cur);
+    return out.join('\r\n');
+  }
+
+  function buildIcs(host, notAfter) {
+    const start = notAfter - CONFIG.reminderDays * 864e5;
+    const end = start + 15 * 60e3;
+    const uid = (globalThis.crypto && crypto.randomUUID)
+      ? crypto.randomUUID() : Date.now() + '-' + host + '@ssl.ee';
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//ssl.ee//SSL Certificate Reminder//ET',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      'UID:' + uid,
+      'DTSTAMP:' + icsStamp(Date.now()),
+      'DTSTART:' + icsStamp(start),
+      'DTEND:' + icsStamp(end),
+      'SUMMARY:' + icsEscape(t('reminder.title', { host })),
+      'DESCRIPTION:' + icsEscape(t('reminder.desc', { host, date: fmtDate(notAfter) })),
+      'BEGIN:VALARM',
+      'TRIGGER:-PT15M',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:' + icsEscape(t('reminder.alarm', { host })),
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ];
+    return lines.map(icsFold).join('\r\n') + '\r\n';
+  }
+
+  function downloadReminder() {
+    const data = lastRender && lastRender.type === 'result' ? lastRender.data : null;
+    if (!data || !data.cert || !Number.isFinite(data.cert.notAfter)) return;
+    saveTextFile(buildIcs(data.host, data.cert.notAfter),
+      data.host + '-ssl-reminder.ics', 'text/calendar;charset=utf-8');
+    showShareStatus(t('reminder.ok'));
   }
 
   function downloadSinglePem(host) {
@@ -1283,6 +1580,8 @@
   });
 
   els.copyResult.addEventListener('click', copyCurrentResult);
+
+  els.addReminder.addEventListener('click', downloadReminder);
 
   els.downloadPem.addEventListener('click', () => {
     const host = lastRender && lastRender.type === 'result' ? lastRender.data.host : null;

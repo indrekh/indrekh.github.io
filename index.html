@@ -166,6 +166,20 @@
           </details>
         </section>
 
+        <div id="chain-check" class="chain-check" hidden>
+          <span class="chain-check-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.4-3.4 8.5-8 9-4.6-.5-8-4.6-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+          </span>
+          <div class="chain-check-body">
+            <h3 id="chain-check-title"></h3>
+            <p id="chain-check-text"></p>
+            <p id="chain-check-fps" class="chain-check-fps" hidden>
+              <span id="chain-check-ct"></span>
+              <span id="chain-check-chain"></span>
+            </p>
+          </div>
+        </div>
+
         <div class="san-block">
           <h3 id="san-title"></h3>
           <ul class="san-list" id="san-list"></ul>
@@ -195,10 +209,29 @@
           </div>
         </div>
 
+        <section id="dns-panel" class="dns-panel" hidden>
+          <div class="dns-head">
+            <h3 data-i18n="dns.title">CAA ja DNSSEC</h3>
+            <span class="dns-provider" data-i18n="dns.provider">Cloudflare DNS-over-HTTPS</span>
+          </div>
+          <div class="dns-body">
+            <div class="dns-item">
+              <span class="dns-label" data-i18n="dns.caa">Lubatud sertifikaadiasutused (CAA)</span>
+              <div id="dns-caa" class="dns-value"></div>
+            </div>
+            <div class="dns-item">
+              <span class="dns-label" data-i18n="dns.dnssec">DNSSEC</span>
+              <div id="dns-dnssec" class="dns-value"></div>
+            </div>
+          </div>
+          <p id="dns-note" class="dns-note" hidden></p>
+        </section>
+
         <footer class="result-foot">
           <div class="share-row">
             <button type="button" class="share-btn" id="share-link" data-i18n="share.copyLink">Kopeeri jagatav link</button>
             <button type="button" class="share-btn" id="copy-result" data-i18n="share.copyResult">Kopeeri tulemus</button>
+            <button type="button" class="share-btn reminder-btn" id="add-reminder" data-i18n="reminder.button">Lisa meeldetuletus kalendrisse aegumise kohta</button>
             <span class="share-status" id="share-status" hidden></span>
           </div>
           <div class="foot-meta">

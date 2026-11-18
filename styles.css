@@ -384,6 +384,37 @@ h1 {
   font-size: 12px; line-height: 1.5; color: var(--faint);
 }
 
+/* ---------- CT vs ahel ---------- */
+
+.chain-check {
+  display: flex; gap: 14px; align-items: flex-start;
+  margin-top: 20px; padding: 14px 16px;
+  border: 1px solid rgba(52, 211, 153, .28);
+  border-radius: 14px;
+  background: rgba(52, 211, 153, .06);
+  animation: fadeUp .35s ease both;
+}
+.chain-check.kind-mismatch { border-color: rgba(248, 113, 113, .35); background: rgba(248, 113, 113, .07); }
+.chain-check.kind-unknown { border-color: var(--border); background: var(--panel); }
+.chain-check-icon {
+  flex: none; width: 34px; height: 34px; border-radius: 10px;
+  display: grid; place-items: center;
+  color: var(--green); background: rgba(52, 211, 153, .12);
+}
+.chain-check.kind-mismatch .chain-check-icon { color: var(--red); background: rgba(248, 113, 113, .12); }
+.chain-check.kind-unknown .chain-check-icon { color: var(--muted); background: var(--panel-strong); }
+.chain-check-icon svg { width: 18px; height: 18px; }
+.chain-check-body { min-width: 0; }
+.chain-check h3 { margin: 0 0 3px; font-size: 13.5px; }
+.chain-check.kind-mismatch h3 { color: var(--red); }
+.chain-check p { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+.chain-check-fps {
+  margin-top: 8px !important;
+  font: 11px/1.7 var(--mono); color: var(--faint) !important;
+  overflow-wrap: anywhere;
+}
+.chain-check-fps span { display: block; }
+
 .timeline { margin-top: 22px; padding-top: 20px; border-top: 1px dashed var(--border); }
 .timeline-summary { margin: 0; font-size: 13px; color: var(--muted); }
 .timeline-track {
@@ -469,6 +500,52 @@ h1 {
 .obs-meta a { color: var(--blue); text-decoration: none; }
 .obs-meta a:hover { text-decoration: underline; }
 
+/* ---------- CAA ja DNSSEC ---------- */
+
+.dns-panel {
+  margin-top: 20px; padding: 16px 20px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 16px;
+  animation: fadeUp .35s ease both;
+}
+.dns-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.dns-head h3 { margin: 0; font-size: 15px; }
+.dns-provider { color: var(--faint); font-size: 12px; }
+.dns-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.dns-item {
+  min-width: 0; padding: 12px 14px;
+  background: rgba(2, 6, 14, .35);
+  border: 1px solid var(--border); border-radius: 12px;
+}
+.dns-label {
+  display: block; margin-bottom: 7px;
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--faint);
+}
+.dns-value { font-size: 13px; line-height: 1.5; color: var(--text); }
+.dns-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin: 0 6px 6px 0; padding: 4px 9px;
+  border-radius: 999px;
+  font: 600 11.5px/1 var(--font);
+  background: rgba(96, 165, 250, .1);
+  border: 1px solid rgba(96, 165, 250, .28);
+  color: var(--blue);
+}
+.dns-chip.wild {
+  background: rgba(52, 211, 153, .1);
+  border-color: rgba(52, 211, 153, .28);
+  color: var(--green);
+}
+.dns-chip small { font-weight: 500; font-size: 10.5px; opacity: .8; }
+.dns-count { font-size: 11.5px; color: var(--faint); }
+.dns-yes { color: var(--green); font-weight: 700; }
+.dns-no { color: var(--amber); font-weight: 700; }
+.dns-note { margin: 12px 0 0; font-size: 12px; line-height: 1.5; color: var(--faint); }
+
 .result-foot {
   margin-top: 22px; padding-top: 18px;
   border-top: 1px dashed var(--border);
@@ -481,6 +558,8 @@ h1 {
   font: 600 12.5px/1 var(--font); transition: .18s;
 }
 .share-btn:hover { border-color: rgba(52, 211, 153, .5); color: var(--green); }
+.reminder-btn { border-color: rgba(52, 211, 153, .35); color: var(--green); }
+.reminder-btn:hover { background: rgba(52, 211, 153, .1); }
 .share-status { font-size: 12px; color: var(--green); }
 .share-status.error { color: var(--amber); }
 .foot-meta {
