@@ -41,6 +41,7 @@
       'form.placeholder': 'sinudomeen.ee',
       'form.ariaLabel': 'Kontrollitav domeen',
       'form.button': 'Kontrolli',
+      'form.compare': '+ Võrdle apex ja www',
       'hero.try': 'Proovi:',
       'hero.privacy': 'Kõik päringud käivad otse sinu brauseris – ssl.ee ei salvesta kontrollitavaid domeene.',
       'scan.ct': 'Küsin sertifikaadi andmeid (Cert Spotter, CT logid)…',
@@ -94,7 +95,7 @@
       'certdetails.subject': 'Subjekt (DN)',
       'certdetails.algorithm': 'Allkirja algoritm',
       'certdetails.key': 'Avalik võti',
-      'certdetails.pemToggle': 'Näita sertifikaadi PEM-i ja sertifikaadi ahelat',
+      'certdetails.pemToggle': 'Näita(laadi alla) sertifikaadi PEM-i ja sertifikaadi ahelat',
       'certdetails.copy': 'Kopeeri PEM',
       'certdetails.copied': 'Kopeeritud!',
       'certdetails.copyFail': 'Kopeerimine ei õnnestunud.',
@@ -157,8 +158,24 @@
       'dns.fail': 'DNS-i andmed pole praegu saadaval. Proovi hiljem uuesti.',
       'timeline.title': 'Väljaandmise ajalugu',
       'timeline.summary': 'Viimase 12 kuu jooksul {n} väljaannet',
+      'timeline.summaryOne': 'Viimase 12 kuu jooksul 1 väljaanne',
       'timeline.issuers': '{n} väljaandjat',
+      'timeline.issuersOne': '1 väljaandja',
       'timeline.note': 'Domeenile on viimase aasta jooksul sertifikaate välja antud mitmelt väljaandjalt:',
+      'compare.title': 'Apex ja www kõrvuti',
+      'compare.subtitle': '{apex} ja www.{apex}',
+      'compare.scan': 'Kontrollin mõlemat domeeni…',
+      'compare.valid': 'Kehtiv',
+      'compare.expiring': 'Aegub varsti',
+      'compare.expired': 'Aegunud',
+      'compare.days': '{n} päeva alles',
+      'compare.issuer': 'Väljaandja: {name}',
+      'compare.notFound': 'CT logist ei leitud sertifikaati',
+      'compare.failed': 'Kontroll ebaõnnestus',
+      'compare.open': 'Vaata detailtulemust',
+      'compare.bothOk': 'Mõlemal domeenil on kehtiv sertifikaat.',
+      'compare.partial': 'Vähemalt ühe domeeni sertifikaat puudub või on aegunud.',
+      'compare.note': 'Apex ja www on eraldi hostid – ühe domeeni sertifikaat ei pruugi kaitsta teist. Kontrolli mõlemat.',
       'sans.title': 'Kaitstud domeenid ({n})',
       'sans.more': 'Näita kõiki ({n})',
       'sans.less': 'Näita vähem',
@@ -207,6 +224,7 @@
       'form.placeholder': 'yourdomain.com',
       'form.ariaLabel': 'Domain to check',
       'form.button': 'Check',
+      'form.compare': '+ Compare apex and www',
       'hero.try': 'Try:',
       'hero.privacy': 'All queries run directly in your browser – ssl.ee never stores the domains you check.',
       'scan.ct': 'Fetching certificate data (Cert Spotter, CT logs)…',
@@ -323,8 +341,24 @@
       'dns.fail': 'DNS data is unavailable right now. Please try again later.',
       'timeline.title': 'Issuance history',
       'timeline.summary': '{n} issuances in the last 12 months',
+      'timeline.summaryOne': '1 issuance in the last 12 months',
       'timeline.issuers': '{n} issuers',
+      'timeline.issuersOne': '1 issuer',
       'timeline.note': 'Certificates were issued by several CAs in the past year:',
+      'compare.title': 'Apex and www side by side',
+      'compare.subtitle': '{apex} and www.{apex}',
+      'compare.scan': 'Checking both domains…',
+      'compare.valid': 'Valid',
+      'compare.expiring': 'Expiring soon',
+      'compare.expired': 'Expired',
+      'compare.days': '{n} days left',
+      'compare.issuer': 'Issuer: {name}',
+      'compare.notFound': 'No certificate found in CT logs',
+      'compare.failed': 'Check failed',
+      'compare.open': 'View detailed result',
+      'compare.bothOk': 'Both domains have a valid certificate.',
+      'compare.partial': 'At least one domain has a missing or expired certificate.',
+      'compare.note': 'Apex and www are separate hosts – a certificate for one may not cover the other. Check both.',
       'sans.title': 'Covered hostnames ({n})',
       'sans.more': 'Show all ({n})',
       'sans.less': 'Show fewer',
@@ -368,6 +402,7 @@
   const $ = (id) => document.getElementById(id);
   const els = {
     form: $('check-form'), input: $('domain-input'), btn: $('check-btn'),
+    compareBtn: $('compare-btn'),
     themeToggle: $('theme-toggle'),
     scan: $('scan-state'), scanHost: $('scan-host'), scanMsg: $('scan-msg'),
     error: $('error-state'), errorMsg: $('error-msg'), errorLinks: $('error-links'),
@@ -394,6 +429,9 @@
     dnsPanel: $('dns-panel'), dnsCaa: $('dns-caa'), dnsDnssec: $('dns-dnssec'), dnsNote: $('dns-note'),
     timeline: $('timeline'), timelineSummary: $('timeline-summary'),
     timelineTrack: $('timeline-track'), timelineNote: $('timeline-note'),
+    comparePanel: $('compare-panel'), compareTitle: $('compare-title'),
+    compareSubtitle: $('compare-subtitle'), compareCards: $('compare-cards'),
+    compareSummary: $('compare-summary'), compareNote: $('compare-note'),
     sanTitle: $('san-title'), sanList: $('san-list'), sanToggle: $('san-toggle'),
     badges: $('badges'),
     obs: $('obs'), obsGrade: $('obs-grade'), obsScore: $('obs-score'), obsLink: $('obs-link'),
@@ -651,9 +689,11 @@
 
   function buildTimeline(rows) {
     if (!Array.isArray(rows) || !rows.length) return null;
+    // queryCrtsh tagastab normaliseeritud read (notBefore/issuer), aga toetame ka
+    // crt.sh toorandmeid (not_before/issuer_name), kui varumeetod muutub.
     const items = rows.map((r) => ({
-      ts: crtDate(r.not_before),
-      issuer: parseCn(r.issuer_name),
+      ts: Number.isFinite(r.notBefore) ? r.notBefore : crtDate(r.not_before),
+      issuer: r.issuer || parseCn(r.issuer_name),
     })).filter((x) => Number.isFinite(x.ts));
     if (!items.length) return null;
     items.sort((a, b) => b.ts - a.ts);
@@ -692,6 +732,7 @@
   function rerenderDynamic() {
     if (!lastRender) return;
     if (lastRender.type === 'result') renderResult(lastRender.data);
+    else if (lastRender.type === 'compare') paintCompare(lastRender.data.apex, lastRender.data.results);
     else if (lastRender.type === 'error') renderError(lastRender.data);
     else if (lastRender.type === 'scan') showScan(lastRender.host, lastRender.msg);
   }
@@ -701,6 +742,7 @@
     els.scan.hidden = true;
     els.error.hidden = true;
     els.card.hidden = true;
+    if (els.comparePanel) els.comparePanel.hidden = true;
     showShareStatus('');
   }
 
@@ -763,8 +805,7 @@
     return rows.map(normCs).filter((c) => Number.isFinite(c.notBefore) && Number.isFinite(c.notAfter));
   }
 
-  async function queryCrtsh(host) {
-    const rows = await fetchJson(CRTSH_API + '?q=' + encodeURIComponent(host) + '&output=json', { timeout: CONFIG.timeouts.crtsh });
+  function normCrtshRows(rows) {
     if (!Array.isArray(rows)) return [];
     return rows.map((r) => ({
       notBefore: crtDate(r.not_before),
@@ -774,6 +815,16 @@
       revoked: false,
       sha256: null,
     })).filter((c) => Number.isFinite(c.notBefore) && Number.isFinite(c.notAfter));
+  }
+
+  async function queryCrtsh(host) {
+    // crt.sh-l puudub CORS – brauseris töötab ajalugu ainult oma Workeri kaudu.
+    // Otsepäring jääb varuks, kui API pole juurutatud või ajutiselt kättesaamatu.
+    try {
+      const res = await fetchJson(API_BASE + '/history?d=' + encodeURIComponent(host), { timeout: CONFIG.timeouts.crtsh });
+      if (res && res.ok && Array.isArray(res.rows)) return normCrtshRows(res.rows);
+    } catch { /* edasi otse crt.sh-le */ }
+    return normCrtshRows(await fetchJson(CRTSH_API + '?q=' + encodeURIComponent(host) + '&output=json', { timeout: CONFIG.timeouts.crtsh }));
   }
 
   /* ---------- Sobitamine ja valik ---------- */
@@ -1565,8 +1616,10 @@
 
   function renderTimeline(tl) {
     if (!tl || !tl.items.length) { els.timeline.hidden = true; return; }
-    els.timelineSummary.textContent = t('timeline.summary', { n: tl.recentCount }) +
-      (tl.issuers.length > 1 ? ' · ' + t('timeline.issuers', { n: tl.issuers.length }) : '');
+    els.timelineSummary.textContent =
+      (tl.recentCount === 1 ? t('timeline.summaryOne') : t('timeline.summary', { n: tl.recentCount })) +
+      (tl.issuers.length === 1 ? ' · ' + t('timeline.issuersOne')
+        : tl.issuers.length > 1 ? ' · ' + t('timeline.issuers', { n: tl.issuers.length }) : '');
     els.timelineTrack.textContent = '';
     for (const item of tl.items) {
       const point = document.createElement('div');
@@ -1634,6 +1687,53 @@
   }
 
   /* ---------- Peamine voog ---------- */
+
+  // Ühine andmehankimine: ühe domeeni tulemus ja apex+www võrdlus kasutavad sama loogikat
+  async function loadDomain(host, opts) {
+    const o = opts || {};
+
+    // crt.sh (nüüd oma Workeri kaudu) käib algusest paralleelselt – ajatelg ja varuallikas
+    const crtshPromise = queryCrtsh(host)
+      .then((rows) => ({ ok: true, rows }))
+      .catch(() => ({ ok: false, rows: [] }));
+
+    let entries = null;
+    let source = null;
+    let anySuccess = false;
+
+    // 1) Cert Spotter — täpne vaste
+    try {
+      const rows = await queryCertspotter(host, false);
+      anySuccess = true;
+      if (rows.length) { entries = rows; source = 'Cert Spotter'; }
+    } catch { /* edasi */ }
+    if (o.stale && o.stale()) return null;
+
+    // 2) Cert Spotter — koos alamdomeenidega, filtreerime hosti katvad
+    if (!entries) {
+      try {
+        const rows = await queryCertspotter(host, true);
+        anySuccess = true;
+        const filtered = rows.filter((e) => coversHost(e, host));
+        if (filtered.length) { entries = filtered; source = 'Cert Spotter'; }
+      } catch { /* edasi */ }
+      if (o.stale && o.stale()) return null;
+    }
+
+    // 3) crt.sh varuallikas (juba käivitatud paralleelpäring)
+    if (!entries) {
+      if (o.onFallback) o.onFallback();
+      const crt = await crtshPromise;
+      if (o.stale && o.stale()) return null;
+      if (crt.ok) {
+        anySuccess = true;
+        if (crt.rows.length) { entries = crt.rows; source = 'crt.sh'; }
+      }
+    }
+
+    return { entries, source, anySuccess, crtshPromise };
+  }
+
   async function runCheck(rawInput) {
     const host = normalizeDomain(rawInput);
     if (!host) {
@@ -1649,44 +1749,9 @@
 
     showScan(host, t('scan.ct'));
 
-    // crt.sh käib algusest paralleelselt – ajatelg ja varuallikas kasutavad sama päringut
-    const crtshPromise = queryCrtsh(host)
-      .then((rows) => ({ ok: true, rows }))
-      .catch(() => ({ ok: false, rows: [] }));
-
-    let entries = null;
-    let source = null;
-    let anySuccess = false;
-
-    // 1) Cert Spotter — täpne vaste
-    try {
-      const rows = await queryCertspotter(host, false);
-      anySuccess = true;
-      if (rows.length) { entries = rows; source = 'Cert Spotter'; }
-    } catch { /* edasi */ }
-    if (stale()) { els.btn.disabled = false; return; }
-
-    // 2) Cert Spotter — koos alamdomeenidega, filtreerime hosti katvad
-    if (!entries) {
-      try {
-        const rows = await queryCertspotter(host, true);
-        anySuccess = true;
-        const filtered = rows.filter((e) => coversHost(e, host));
-        if (filtered.length) { entries = filtered; source = 'Cert Spotter'; }
-      } catch { /* edasi */ }
-      if (stale()) { els.btn.disabled = false; return; }
-    }
-
-    // 3) crt.sh varuallikas (juba käivitatud paralleelpäring)
-    if (!entries) {
-      showScan(host, t('scan.fallback'));
-      const crt = await crtshPromise;
-      if (stale()) { els.btn.disabled = false; return; }
-      if (crt.ok) {
-        anySuccess = true;
-        if (crt.rows.length) { entries = crt.rows; source = 'crt.sh'; }
-      }
-    }
+    const loaded = await loadDomain(host, { stale, onFallback: () => showScan(host, t('scan.fallback')) });
+    if (stale() || !loaded) { els.btn.disabled = false; return; }
+    const { entries, source, anySuccess, crtshPromise } = loaded;
 
     // HTTP turvapäiste skoor (ei blokeeri põhitulemust)
     const obsPromise = fetchObservatory(host);
@@ -1718,6 +1783,99 @@
     els.btn.disabled = false;
   }
 
+  /* ---------- Apex + www kõrvuti ---------- */
+
+  async function runCompare(rawInput) {
+    const host = normalizeDomain(rawInput);
+    if (!host) {
+      renderError({ type: 'invalidDomain' });
+      els.input.focus();
+      return;
+    }
+
+    // Kui sisestati www.variant, võtame aluseks apex-domeeni
+    const apex = host.startsWith('www.') ? host.slice(4) : host;
+    const hosts = [apex, 'www.' + apex];
+
+    const checkId = ++checkCounter;
+    const stale = () => checkId !== checkCounter;
+    els.btn.disabled = true;
+    if (els.compareBtn) els.compareBtn.disabled = true;
+    showScan(hosts.join(' + '), t('compare.scan'));
+
+    const results = await Promise.all(hosts.map(async (h) => {
+      try {
+        const loaded = await loadDomain(h);
+        if (!loaded || !loaded.anySuccess) return { host: h, error: 'failed' };
+        if (!loaded.entries || !loaded.entries.length) return { host: h, error: 'notFound' };
+        const picked = pickCert(loaded.entries);
+        if (!picked.cert) return { host: h, error: 'notFound' };
+        return { host: h, cert: picked.cert, hasActive: picked.hasActive, source: loaded.source };
+      } catch { return { host: h, error: 'failed' }; }
+    }));
+
+    if (stale()) {
+      els.btn.disabled = false;
+      if (els.compareBtn) els.compareBtn.disabled = false;
+      return;
+    }
+
+    lastRender = { type: 'compare', data: { apex, results } };
+    paintCompare(apex, results);
+    els.btn.disabled = false;
+    if (els.compareBtn) els.compareBtn.disabled = false;
+  }
+
+  function paintCompare(apex, results) {
+    hideStates();
+    els.compareTitle.textContent = t('compare.title');
+    els.compareSubtitle.textContent = t('compare.subtitle', { apex });
+
+    const allValid = results.length === 2 && results.every((r) => !r.error && statusOf(r.cert, r.hasActive) === 'valid');
+    els.compareSummary.textContent = t(allValid ? 'compare.bothOk' : 'compare.partial');
+    els.compareSummary.className = 'compare-summary ' + (allValid ? 'ok' : 'warn');
+
+    els.compareCards.textContent = '';
+    for (const r of results) {
+      const status = r.error ? 'error' : statusOf(r.cert, r.hasActive);
+      const card = document.createElement('div');
+      card.className = 'compare-card status-' + status;
+
+      const head = document.createElement('div');
+      head.className = 'compare-card-head';
+      const host = document.createElement('strong');
+      host.className = 'compare-host';
+      host.textContent = r.host;
+      const badge = document.createElement('span');
+      badge.className = 'compare-badge';
+      badge.textContent = r.error ? t('compare.' + r.error) : t('compare.' + status);
+      head.append(host, badge);
+
+      const metric = document.createElement('p');
+      metric.className = 'compare-metric';
+      if (r.error) metric.textContent = '–';
+      else if (status === 'expired') metric.textContent = t('compare.expired');
+      else metric.textContent = t('compare.days', { n: daysLeftOf(r.cert) });
+
+      const issuer = document.createElement('p');
+      issuer.className = 'compare-issuer';
+      issuer.textContent = r.error ? '' : t('compare.issuer', { name: r.cert.issuer || '–' });
+
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.className = 'compare-open';
+      open.textContent = t('compare.open');
+      open.addEventListener('click', () => { els.input.value = r.host; runCheck(r.host); });
+
+      card.append(head, metric, issuer, open);
+      els.compareCards.appendChild(card);
+    }
+
+    els.compareNote.textContent = t('compare.note');
+    els.comparePanel.hidden = false;
+    smoothScroll(els.comparePanel);
+  }
+
   function statusOf(cert, hasActive) {
     const now = Date.now();
     if (!hasActive || cert.notAfter < now) return 'expired';
@@ -1730,6 +1888,8 @@
 
   /* ---------- Sündmused ---------- */
   els.form.addEventListener('submit', (e) => { e.preventDefault(); runCheck(els.input.value); });
+
+  if (els.compareBtn) els.compareBtn.addEventListener('click', () => runCompare(els.input.value));
 
   document.querySelectorAll('.chip[data-domain]').forEach((chip) => {
     chip.addEventListener('click', () => { els.input.value = chip.dataset.domain; runCheck(chip.dataset.domain); });

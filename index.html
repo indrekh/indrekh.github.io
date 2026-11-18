@@ -66,6 +66,8 @@
           </button>
         </form>
 
+        <button type="button" id="compare-btn" class="compare-btn" data-i18n="form.compare">+ Võrdle apex ja www</button>
+
         <div class="examples">
           <span data-i18n="hero.try">Proovi:</span>
           <button type="button" class="chip" data-domain="google.com">google.com</button>
@@ -151,7 +153,7 @@
             <div class="detail"><dt data-i18n="certdetails.key">Avalik võti</dt><dd id="cert-key"></dd></div>
           </dl>
           <details class="pem-block">
-            <summary data-i18n="certdetails.pemToggle">Näita sertifikaadi PEM-i ja sertifikaadi ahelat</summary>
+            <summary data-i18n="certdetails.pemToggle">Näita(laadi alla) sertifikaadi PEM-i ja sertifikaadi ahelat</summary>
             <div class="pem-head">
               <span id="cert-kind" class="pem-kind"></span>
               <div class="pem-actions">
@@ -264,6 +266,18 @@
           </div>
         </footer>
       </article>
+
+      <section id="compare-panel" class="compare-panel" hidden>
+        <header class="compare-head">
+          <div>
+            <h2 id="compare-title"></h2>
+            <p id="compare-subtitle" class="compare-subtitle"></p>
+          </div>
+          <span id="compare-summary" class="compare-summary"></span>
+        </header>
+        <div id="compare-cards" class="compare-cards"></div>
+        <p id="compare-note" class="compare-note"></p>
+      </section>
 
       <div id="history" class="history" hidden>
         <div class="history-head">

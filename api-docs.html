@@ -111,6 +111,7 @@
         <tbody>
           <tr><td><span class="method">GET</span> <code>/pem?d=&lt;domeen&gt;</code></td><td><code>text/plain</code></td><td data-et="Ühe (hetkel aktiivse) lehesertifikaadi PEM" data-en="PEM of the single (currently active) leaf certificate">Ühe (hetkel aktiivse) lehesertifikaadi PEM</td></tr>
           <tr><td><span class="method">GET</span> <code>/chain?d=&lt;domeen&gt;</code></td><td><code>text/plain</code></td><td data-et="Täielik ahel: leht → vahepealsed → juur" data-en="Full chain: leaf → intermediates → root">Täielik ahel: leht → vahepealsed → juur</td></tr>
+          <tr><td><span class="method">GET</span> <code>/history?d=&lt;domeen&gt;</code></td><td><code>application/json</code></td><td data-et="Väljaandmise ajalugu crt.sh-st (CORS-sõbralik)" data-en="Issuance history from crt.sh (CORS-friendly)">Väljaandmise ajalugu crt.sh-st (CORS-sõbralik)</td></tr>
           <tr><td><span class="method">GET</span> <code>/?d=&lt;domeen&gt;</code></td><td><code>application/json</code></td><td data-et="Mõlemad PEM-id koos metainfoga" data-en="Both PEMs with metadata">Mõlemad PEM-id koos metainfoga</td></tr>
           <tr><td><span class="method">GET</span> <code>/</code></td><td><code>application/json</code></td><td data-et="Endpointide nimekiri (dokumentatsioon)" data-en="Endpoint listing (documentation)">Endpointide nimekiri (dokumentatsioon)</td></tr>
           <tr><td><span class="method">GET</span> <code>/health</code></td><td><code>application/json</code></td><td data-et="Lihtne tervisekontroll" data-en="Simple health check">Lihtne tervisekontroll</td></tr>
@@ -140,6 +141,11 @@
       <div class="code-card">
         <div class="code-label" data-et="Struktureeritud JSON-vastus" data-en="Structured JSON response">Struktureeritud JSON-vastus</div>
         <pre><code><span class="cmd">curl</span> "https://ssl.ee/api/chain?d=wikipedia.org&amp;format=json" | jq .count</code></pre>
+      </div>
+
+      <div class="code-card">
+        <div class="code-label" data-et="Väljaandmise ajalugu" data-en="Issuance history">Väljaandmise ajalugu</div>
+        <pre><code><span class="cmd">curl</span> "https://ssl.ee/api/history?d=wikipedia.org" | jq '.count, .rows[0]'</code></pre>
       </div>
 
       <div class="code-card">
@@ -176,6 +182,7 @@
           <tr><td>404</td><td><code>unknown_endpoint</code></td><td data-et="Tundmatu tee — vaata GET /" data-en="Unknown path — see GET /">Tundmatu tee — vaata GET /</td></tr>
           <tr><td>405</td><td><code>method_not_allowed</code></td><td data-et="Toetatakse ainult GET ja OPTIONS" data-en="Only GET and OPTIONS are supported">Toetatakse ainult GET ja OPTIONS</td></tr>
           <tr><td>502</td><td><code>chain_unavailable</code></td><td data-et="Trustico API ei tagastanud ahelat" data-en="Trustico API did not return a chain">Trustico API ei tagastanud ahelat</td></tr>
+          <tr><td>502</td><td><code>crtsh_unavailable</code></td><td data-et="crt.sh ajaloopäring ebaõnnestus" data-en="crt.sh history request failed">crt.sh ajaloopäring ebaõnnestus</td></tr>
           <tr><td>502</td><td><code>upstream_error</code></td><td data-et="Andmeallika päring ebaõnnestus (nt ajalõpp)" data-en="Upstream request failed (e.g. timeout)">Andmeallika päring ebaõnnestus (nt ajalõpp)</td></tr>
         </tbody>
       </table>
@@ -184,6 +191,7 @@
     <section class="docs-section">
       <h2><span class="num">05</span><span data-et="Andmeallikad ja märkused" data-en="Data sources &amp; notes">Andmeallikad ja märkused</span></h2>
       <p data-et="Ühe sertifikaadi PEM pärineb Certificate Transparency logidest (Cert Spotter) ja on seatud hetkel kehtivale lehesertifikaadile. Täielik ahel pärineb Trustico SSL Toolsist ja näitab just neid sertifikaate, mida server parasjagu teenindab – se võib erineda CT-logis olevast lehest." data-en="The single certificate PEM comes from Certificate Transparency logs (Cert Spotter) and is set to the currently valid leaf certificate. The full chain comes from Trustico SSL Tools and shows exactly the certificates the server is serving right now — it may differ from the leaf found in CT logs.">Ühe sertifikaadi PEM pärineb Certificate Transparency logidest (Cert Spotter) ja on seatud hetkel kehtivale lehesertifikaadile. Täielik ahel pärineb Trustico SSL Toolsist ja näitab just neid sertifikaate, mida server parasjagu teenindab – se võib erineda CT-logis olevast lehest.</p>
+      <p data-et="Väljaandmise ajalugu pärineb crt.sh-st ja on saadaval otse veebilehel samuti selle Workeri kaudu – nii välditakse crt.sh CORS-piirangut brauseris." data-en="Issuance history comes from crt.sh and is also available on the website through this Worker – avoiding the crt.sh CORS restriction in the browser.">Väljaandmise ajalugu pärineb crt.sh-st ja on saadaval otse veebilehel samuti selle Workeri kaudu – nii välditakse crt.sh CORS-piirangut brauseris.</p>
       <p data-et-html="Vastustel on <code>Access-Control-Allow-Origin: *</code> ja <code>Cache-Control: public, max-age=3600</code>. API-võtit pole vaja. Kui soovid piirata kasutamist, lisa Workerisse oma autentimiskontroll." data-en-html="Responses include <code>Access-Control-Allow-Origin: *</code> and <code>Cache-Control: public, max-age=3600</code>. No API key is required. To restrict usage, add your own authentication check to the Worker.">Vastustel on <code>Access-Control-Allow-Origin: *</code> ja <code>Cache-Control: public, max-age=3600</code>. API-võtit pole vaja. Kui soovid piirata kasutamist, lisa Workerisse oma autentimiskontroll.</p>
     </section>
 

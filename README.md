@@ -23,7 +23,10 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
 1. **Cert Spotter** (primaarne) – Certificate Transparency logidest loetakse
    domeeni uusim sertifikaat: kehtivusajad, väljaandja, kaitstud domeenid (SAN),
    SHA-256 sõrmejälg ja tühistamise staatus. Vastab CORS-iga, API-võtit pole vaja.
-2. **crt.sh** (varu) – kasutatakse, kui esimene allikas ei vasta.
+2. **crt.sh** (varu ja ajalugu) – kasutatakse, kui esimene allikas ei vasta.
+   Väljaandmise ajalugu loetakse nüüd oma Cloudflare Workeri
+   (`GET /api/history?d=domeen.ee`) kaudu, sest crt.sh-l endal puudub CORS ja
+   otsepäring brauseris ebaõnnestub. Worker on varumeetodina alles ka otsepäring.
 3. **MDN HTTP Observatory** (valikuline boonus) – HTTP turvapäiste skoor (A+…F).
    Keelamiseks muuda `app.js` failis `CONFIG.observatory` väärtuseks `false`.
 4. **Täielik sertifikaadivaade** – Cert Spotteri PEM-andmetest loetakse otse
@@ -81,6 +84,15 @@ Kõik päringud käivad **kasutaja brauseris** – serverit ega andmebaasi pole 
 15. **Hele/tume teema** – päises olev nupp lülitab teemat; valik salvestatakse
     `localStorage`'i (`ssl-ee-theme`) ja rakendatakse enne CSS-i laadimist, et
     vältida vilksatust. Vaikimisi on endiselt tume teema.
+16. **Apex + www kõrvuti** – nupp „+ Võrdle apex ja www" kontrollib mõlemat
+    hosti (`domeen.ee` ja `www.domeen.ee`) ühe klikiga ja näitab kahes veerus
+    staatuse, allesjäänud päevad ja väljaandja. Iga veeru alt pääseb detailtulemusse.
+    Kui sisestati `www.`-variant, võetakse aluseks apex-domeen.
+17. **crt.sh ajaloo CORS-i parandus** – brauser küsib ajaloo läbi oma Workeri
+    endpointi `/api/history`, mis tagastab normaliseeritud GT-logi kirjed
+    (`not_before`, `not_after`, `name_value`, `issuer_name`). Kui API pole
+    juurutatud, proovitakse varumeetodina otse crt.sh-d; ajalugu peidetakse
+    endiselt vaikselt, kui mõlemad allikad ebaõnnestuvad.
 
 Täpseks kättesaamise analüüsiks (protokollid, šifrid, usaldusahel) suunab leht
 kasutaja SSL Labsi raportile.
