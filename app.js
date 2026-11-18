@@ -212,6 +212,10 @@
       'faq5.a': 'Jah. ssl.ee on tasuta, ei nõua registreerimist ega kogu isikuandmeid. Küll võivad kehtida andmeallikate endi päringupiirangud.',
       'footer.tagline': 'Privaatsust austav SSL-sertifikaadi kontrollija – kõik päringud käivad sinu brauseris.',
       'footer.sources': 'Andmeallikad: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico · Cloudflare DNS',
+      'footer.navCheck': 'Kontrolli sertifikaati',
+      'footer.navLearn': 'Sertifikaadi uuendamine',
+      'footer.navFaq': 'Korduma kippuvad küsimused',
+      'footer.navApi': 'API dokumentatsioon',
     },
     en: {
       'meta.title': 'ssl.ee — SSL certificate checker',
@@ -395,6 +399,10 @@
       'faq5.a': 'Yes. ssl.ee is free, requires no sign-up and collects no personal data. The upstream data sources may apply their own rate limits.',
       'footer.tagline': 'A privacy-respecting SSL certificate checker – every query runs in your browser.',
       'footer.sources': 'Data sources: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico · Cloudflare DNS',
+      'footer.navCheck': 'Check a certificate',
+      'footer.navLearn': 'Certificate renewal',
+      'footer.navFaq': 'Frequently asked questions',
+      'footer.navApi': 'API documentation',
     },
   };
 

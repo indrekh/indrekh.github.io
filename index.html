@@ -5,12 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ssl.ee — SSL-sertifikaadi kontrollija</title>
   <meta name="description" content="Kontrolli ühe klikiga, kas domeeni SSL-sertifikaat on kehtiv: kehtivusaeg, väljaandja ja kaitstud domeenid. Tasuta ja ilma registreerimiseta.">
+  <link rel="canonical" href="https://ssl.ee/">
   <meta name="theme-color" content="#04060c">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <meta property="og:title" content="ssl.ee — SSL-sertifikaadi kontrollija">
   <meta property="og:description" content="Kas sinu SSL-sertifikaat on veel kehtiv? Sisesta domeen ja saa vastus sekundiga.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ssl.ee/">
+  <meta property="og:site_name" content="ssl.ee">
+  <meta property="og:locale" content="et_EE">
+  <meta property="og:image" content="https://ssl.ee/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ssl.ee — SSL-sertifikaadi kontrollija">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ssl.ee — SSL-sertifikaadi kontrollija">
+  <meta name="twitter:description" content="Kas sinu SSL-sertifikaat on veel kehtiv? Sisesta domeen ja saa vastus sekundiga.">
+  <meta name="twitter:image" content="https://ssl.ee/og-image.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "ssl.ee — SSL-sertifikaadi kontrollija",
+    "url": "https://ssl.ee/",
+    "description": "Kontrolli ühe klikiga, kas domeeni SSL-sertifikaat on kehtiv: kehtivusaeg, väljaandja ja kaitstud domeenid.",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "Any",
+    "inLanguage": "et",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
+  }
+  </script>
   <link rel="stylesheet" href="styles.css">
   <script>
     // Rakenda salvestatud teema enne CSS-i, et vältida heledat vilksatust
@@ -20,7 +44,7 @@
 <body>
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="#" aria-label="ssl.ee — avaleht">
+      <a class="brand" href="/" aria-label="ssl.ee — avaleht">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="#04241a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
         </span>
@@ -79,6 +103,7 @@
     </section>
 
     <section class="checker container" id="checker" aria-live="polite">
+      <h2 class="visually-hidden">SSL-sertifikaadi kontrolli tulemus</h2>
       <div id="scan-state" class="scan-state" hidden>
         <span class="spinner" aria-hidden="true"></span>
         <div class="scan-text">
@@ -317,7 +342,7 @@
       </div>
     </section>
 
-    <section class="learn">
+    <section class="learn" id="learn">
       <div class="container">
         <h2 data-i18n="learn.title">Sertifikaadi uuendamine ja tulemuse mõistmine</h2>
         <div class="learn-grid">
@@ -344,7 +369,7 @@
       </div>
     </section>
 
-    <section class="faq">
+    <section class="faq" id="faq">
       <div class="container">
         <h2 data-i18n="faq.title">Korduma kippuvad küsimused</h2>
         <div class="faq-list">
@@ -377,6 +402,12 @@
     <div class="container">
       <p class="footer-brand">ssl<em>.ee</em></p>
       <p class="footer-tagline" data-i18n="footer.tagline">Privaatsust austav SSL-sertifikaadi kontrollija – kõik päringud käivad sinu brauseris.</p>
+      <nav class="footer-nav" aria-label="Sisukord">
+        <a href="#checker" data-i18n="footer.navCheck">Kontrolli sertifikaati</a>
+        <a href="#learn" data-i18n="footer.navLearn">Sertifikaadi uuendamine</a>
+        <a href="#faq" data-i18n="footer.navFaq">Korduma kippuvad küsimused</a>
+        <a href="api-docs.html" data-i18n="footer.navApi">API dokumentatsioon</a>
+      </nav>
       <p class="footer-meta"><span data-i18n="footer.sources">Andmeallikad: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico</span> · <span id="footer-year"></span></p>
     </div>
   </footer>
