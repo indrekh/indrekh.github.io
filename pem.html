@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-et="PEM-i dekodeerija — ssl.ee" data-en="PEM decoder — ssl.ee">PEM-i dekodeerija — ssl.ee</title>
-  <meta name="description" content="Kleebi sertifikaadi PEM või pelk base64 ja loe selle andmed otse brauseris. Subjekt, väljaandja, kehtivus, avalik võti, SHA-256 sõrmejälg ja SAN-nimed. Ühtegi päringut ei saadeta.">
+  <meta name="description" content="Kleebi ühe või mitme sertifikaadi PEM-id või pelk base64 ja loe nende andmed otse brauseris. Subjekt, väljaandja, kehtivus, avalik võti, SHA-256 sõrmejälg ja SAN-nimed. Ühtegi päringut ei saadeta.">
   <link rel="canonical" href="https://ssl.ee/pem.html">
   <meta name="theme-color" content="#04060c">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <meta property="og:title" content="PEM-i dekodeerija — ssl.ee">
-  <meta property="og:description" content="Loe X.509-sertifikaadi andmed otse brauseris – ilma ühegi võrgupäringuta.">
+  <meta property="og:description" content="Loe ühe või mitme X.509-sertifikaadi andmed otse brauseris – ilma ühegi võrgupäringuta.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ssl.ee/pem.html">
   <meta property="og:site_name" content="ssl.ee">
@@ -20,7 +20,7 @@
   <meta property="og:image:alt" content="ssl.ee — SSL-sertifikaadi kontrollija">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="PEM-i dekodeerija — ssl.ee">
-  <meta name="twitter:description" content="Loe X.509-sertifikaadi andmed otse brauseris – ilma ühegi võrgupäringuta.">
+  <meta name="twitter:description" content="Loe ühe või mitme X.509-sertifikaadi andmed otse brauseris – ilma ühegi võrgupäringuta.">
   <meta name="twitter:image" content="https://ssl.ee/og-image.png">
   <script type="application/ld+json">
   {
@@ -51,6 +51,23 @@
     :root[data-theme="light"] .api-link:hover { background: rgba(4, 120, 87, .9); border-color: rgba(4, 120, 87, .6); color: #fff; }
     .header-nav { display: flex; align-items: center; gap: 12px; }
     .pem-card { max-width: 820px; margin: 0 auto; }
+    .pem-count { font: 700 12.5px/1 var(--font); color: var(--muted); }
+    .pem-certs { display: flex; flex-direction: column; gap: 18px; }
+    .pem-cert {
+      background: rgba(2, 6, 14, .28); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px;
+    }
+    .pem-cert-head {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
+    }
+    .pem-cert-title { margin: 0; font-size: 15.5px; }
+    .pem-cert .san-block { margin-top: 16px; padding-top: 14px; }
+    .pem-cert .san-block h4 {
+      margin: 0 0 10px; font-size: 12.5px; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--faint); font-weight: 700;
+    }
+    :root[data-theme="light"] .pem-cert { background: rgba(15, 23, 42, .025); }
     .privacy-note {
       max-width: 820px; margin: 20px auto 0;
       border-left: 3px solid var(--blue); background: rgba(96, 165, 250, .07);
@@ -62,6 +79,7 @@
       .header-nav { gap: 8px; }
       .api-link { font-size: 11px; padding: 6px 9px; }
       .pem-page { padding: 36px 0 60px; }
+      .pem-cert { padding: 14px; }
     }
   </style>
 </head>
@@ -99,15 +117,15 @@
         <span data-et="Brauseris · ilma võrgupäringuteta" data-en="In your browser · no network requests">Brauseris · ilma võrgupäringuteta</span>
       </p>
       <h1 data-et="PEM-i dekodeerija" data-en="PEM decoder">PEM-i dekodeerija</h1>
-      <p data-et="Kleebi sertifikaadi PEM (või pelk base64) – loeme andmed otse sinu brauseris. Ühtegi päringut ei saadeta." data-en="Paste a certificate PEM (or plain base64) – we read the data right in your browser. No requests are sent.">Kleebi sertifikaadi PEM (või pelk base64) – loeme andmed otse sinu brauseris. Ühtegi päringut ei saadeta.</p>
+      <p data-et="Kleebi ühe või mitme sertifikaadi PEM-id (või pelgad base64-plokid) – loeme kõik andmed otse sinu brauseris. Ühtegi päringut ei saadeta." data-en="Paste one or several certificate PEMs (or plain base64 blocks) – we read all of them right in your browser. No requests are sent.">Kleebi ühe või mitme sertifikaadi PEM-id (või pelgad base64-plokid) – loeme kõik andmed otse sinu brauseris. Ühtegi päringut ei saadeta.</p>
     </div>
 
     <section class="pem-card" aria-labelledby="pem-card-title">
       <div class="pem-field">
-        <label for="pem-input" data-et="Sertifikaadi PEM" data-en="Certificate PEM">Sertifikaadi PEM</label>
+        <label for="pem-input" data-et="Sertifikaatide PEM-id" data-en="Certificate PEMs">Sertifikaatide PEM-id</label>
         <textarea id="pem-input" class="pem-input" rows="8" spellcheck="false" autocapitalize="none"
-                  autocomplete="off" placeholder="Kleebi PEM siia…"
-                  data-et-placeholder="Kleebi PEM siia…" data-en-placeholder="Paste PEM here…"></textarea>
+                  autocomplete="off" placeholder="Kleebi PEM-id siia…"
+                  data-et-placeholder="Kleebi PEM-id siia…" data-en-placeholder="Paste PEMs here…"></textarea>
       </div>
       <div class="pem-actions">
         <button type="button" class="share-btn pem-decode-btn" id="pem-decode-btn" data-et="Dekodeeri" data-en="Decode">Dekodeeri</button>
@@ -117,41 +135,51 @@
 
       <div id="pem-result" class="pem-result" hidden>
         <div class="pem-result-head">
-          <h2 id="pem-card-title" data-et="Dekodeeritud sertifikaat" data-en="Decoded certificate">Dekodeeritud sertifikaat</h2>
-          <span id="pem-status-chip" class="pem-chip"></span>
+          <h2 id="pem-card-title" data-et="Dekodeeritud sertifikaadid" data-en="Decoded certificates">Dekodeeritud sertifikaadid</h2>
+          <span id="pem-count" class="pem-count"></span>
         </div>
-        <dl class="details pem-details">
-          <div class="detail">
-            <dt data-et="Subjekt (DN)" data-en="Subject (DN)">Subjekt (DN)</dt><dd id="pem-subject"></dd>
-          </div>
-          <div class="detail">
-            <dt data-et="Väljaandja" data-en="Issuer">Väljaandja</dt><dd id="pem-issuer"></dd>
-          </div>
-          <div class="detail">
-            <dt data-et="Seerianumber" data-en="Serial number">Seerianumber</dt><dd id="pem-serial" class="mono"></dd>
-          </div>
-          <div class="detail">
-            <dt data-et="Kehtiv alates" data-en="Valid from">Kehtiv alates</dt><dd id="pem-from"></dd>
-          </div>
-          <div class="detail">
-            <dt data-et="Kehtib kuni" data-en="Valid until">Kehtib kuni</dt><dd id="pem-until"></dd>
-          </div>
-          <div class="detail">
-            <dt data-et="Avalik võti" data-en="Public key">Avalik võti</dt><dd id="pem-key"></dd>
-          </div>
-          <div class="detail">
-            <dt data-et="Allkirja algoritm" data-en="Signature algorithm">Allkirja algoritm</dt><dd id="pem-signature"></dd>
-          </div>
-          <div class="detail">
-            <dt data-et="Sõrmejälg (SHA-256)" data-en="Fingerprint (SHA-256)">Sõrmejälg (SHA-256)</dt><dd id="pem-fp" class="mono"></dd>
-          </div>
-        </dl>
-        <div class="san-block">
-          <h3 id="pem-san-title"></h3>
-          <ul class="san-list" id="pem-san-list"></ul>
-        </div>
+        <div id="pem-certs" class="pem-certs"></div>
         <p id="pem-note" class="pem-note" hidden></p>
       </div>
+
+      <template id="pem-cert-template">
+        <article class="pem-cert">
+          <div class="pem-cert-head">
+            <h3 class="pem-cert-title"></h3>
+            <span class="pem-chip"></span>
+          </div>
+          <dl class="details pem-details">
+            <div class="detail">
+              <dt data-et="Subjekt (DN)" data-en="Subject (DN)">Subjekt (DN)</dt><dd class="pem-v-subject"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Väljaandja" data-en="Issuer">Väljaandja</dt><dd class="pem-v-issuer"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Seerianumber" data-en="Serial number">Seerianumber</dt><dd class="pem-v-serial mono"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Kehtiv alates" data-en="Valid from">Kehtiv alates</dt><dd class="pem-v-from"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Kehtib kuni" data-en="Valid until">Kehtib kuni</dt><dd class="pem-v-until"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Avalik võti" data-en="Public key">Avalik võti</dt><dd class="pem-v-key"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Allkirja algoritm" data-en="Signature algorithm">Allkirja algoritm</dt><dd class="pem-v-signature"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Sõrmejälg (SHA-256)" data-en="Fingerprint (SHA-256)">Sõrmejälg (SHA-256)</dt><dd class="pem-v-fp mono"></dd>
+            </div>
+          </dl>
+          <div class="san-block">
+            <h4 class="pem-san-title"></h4>
+            <ul class="san-list pem-san-list"></ul>
+          </div>
+        </article>
+      </template>
     </section>
 
     <p class="privacy-note" data-et-html="<strong>Privaatsus:</strong> dekodeerimine toimub täielikult sinu brauseris. Sertifikaati ei saadeta ühelegi serverile ega salvestata kuhugi." data-en-html="<strong>Privacy:</strong> decoding happens entirely in your browser. The certificate is never sent to a server or stored anywhere."><strong>Privaatsus:</strong> dekodeerimine toimub täielikult sinu brauseris. Sertifikaati ei saadeta ühelegi serverile ega salvestata kuhugi.</p>
@@ -175,25 +203,31 @@
         et: {
           validDays: 'Kehtib veel {days}',
           expired: 'Sertifikaat on aegunud',
-          errorEmpty: 'Sisesta sertifikaadi PEM.',
+          errorEmpty: 'Sisesta vähemalt ühe sertifikaadi PEM.',
           errorInvalid: 'PEM-i ei õnnestunud dekodeerida. Kontrolli, et tekst oleks terviklik X.509-sertifikaat.',
-          multi: 'Kleebisid mitu sertifikaati – dekodeeritud on esimene (leht).',
+          countOne: '1 sertifikaat',
+          countMany: '{n} sertifikaati',
+          certNumber: 'Sertifikaat {n}',
+          partial: '{okText} õnnestus dekodeerida; ülejäänud plokid olid vigased.',
           noSan: 'Sertifikaadil puudub SAN-nimede loend.',
           sans: 'Kaitstud domeenid ({n})'
         },
         en: {
           validDays: 'Valid for another {days}',
           expired: 'Certificate has expired',
-          errorEmpty: 'Enter a certificate PEM.',
+          errorEmpty: 'Enter at least one certificate PEM.',
           errorInvalid: 'Could not decode the PEM. Check that the text is a complete X.509 certificate.',
-          multi: 'You pasted several certificates – the first one (leaf) was decoded.',
+          countOne: '1 certificate',
+          countMany: '{n} certificates',
+          certNumber: 'Certificate {n}',
+          partial: '{okText} decoded; the remaining blocks were invalid.',
           noSan: 'The certificate has no SAN names.',
           sans: 'Covered hostnames ({n})'
         }
       };
 
       var lang = 'et';
-      var lastPem = null;
+      var lastDecode = null;   // { certs: [{parsed, fp}], total: arv }
 
       function t(key, vars) {
         var s = (I18N[lang] && I18N[lang][key]) != null ? I18N[lang][key] : I18N.et[key];
@@ -216,10 +250,7 @@
       var langEt = document.getElementById('lang-et');
       var langEn = document.getElementById('lang-en');
 
-      function setLang(next) {
-        lang = next;
-        try { localStorage.setItem('ssl-ee-lang', lang); } catch (e) { /* privaatrežiim */ }
-        document.documentElement.lang = lang;
+      function applyTranslations() {
         document.querySelectorAll('[data-et]').forEach(function (el) {
           var v = el.getAttribute('data-' + lang);
           if (v !== null) el.textContent = v;
@@ -236,7 +267,14 @@
         });
         langEt.setAttribute('aria-pressed', String(lang === 'et'));
         langEn.setAttribute('aria-pressed', String(lang === 'en'));
-        if (lastPem) fillPemResult(lastPem.parsed, lastPem.fp, lastPem.multi);
+      }
+
+      function setLang(next) {
+        lang = next;
+        try { localStorage.setItem('ssl-ee-lang', lang); } catch (e) { /* privaatrežiim */ }
+        document.documentElement.lang = lang;
+        applyTranslations();
+        if (lastDecode) renderPemResults();
       }
 
       var savedLang = 'et';
@@ -513,28 +551,35 @@
         clearBtn: document.getElementById('pem-clear-btn'),
         status: document.getElementById('pem-status'),
         result: document.getElementById('pem-result'),
-        chip: document.getElementById('pem-status-chip'),
-        subject: document.getElementById('pem-subject'),
-        issuer: document.getElementById('pem-issuer'),
-        serial: document.getElementById('pem-serial'),
-        from: document.getElementById('pem-from'),
-        until: document.getElementById('pem-until'),
-        key: document.getElementById('pem-key'),
-        signature: document.getElementById('pem-signature'),
-        fp: document.getElementById('pem-fp'),
-        sanTitle: document.getElementById('pem-san-title'),
-        sanList: document.getElementById('pem-san-list'),
-        note: document.getElementById('pem-note')
+        certs: document.getElementById('pem-certs'),
+        count: document.getElementById('pem-count'),
+        note: document.getElementById('pem-note'),
+        template: document.getElementById('pem-cert-template')
       };
 
-      function extractCertB64(input) {
+      // Tagastab kõik sisestatud sertifikaadid: PEM-plokid või tühjade ridadega
+      // eraldatud paljad base64-plokid. Üksik base64 töötab endiselt ka.
+      function extractCertB64s(input) {
         var s = String(input == null ? '' : input).trim();
-        if (!s) return null;
+        if (!s) return { list: [], total: 0 };
+        var clean = function (block) {
+          var b64 = String(block)
+            .replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----/g, '')
+            .replace(/\s+/g, '');
+          return (/^[A-Za-z0-9+/]+={0,2}$/.test(b64) && b64.length >= 100) ? b64 : null;
+        };
         var blocks = s.match(/-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/g) || [];
-        var first = blocks.length ? blocks[0] : s;
-        var b64 = first.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----/g, '').replace(/\s+/g, '');
-        if (!/^[A-Za-z0-9+/]+={0,2}$/.test(b64) || b64.length < 100) return null;
-        return b64;
+        var candidates, total;
+        if (blocks.length) {
+          candidates = blocks;
+          total = blocks.length;
+        } else {
+          var chunks = s.split(/\n\s*\n/).map(function (x) { return x.trim(); }).filter(Boolean);
+          candidates = chunks.length > 1 ? chunks : [s];
+          total = candidates.length;
+        }
+        var list = candidates.map(clean).filter(Boolean);
+        return { list: list, total: total };
       }
 
       function sha256Hex(bytes) {
@@ -552,59 +597,86 @@
         els.status.hidden = !msg;
       }
 
-      function fillPemResult(parsed, fp, multi) {
-        els.subject.textContent = parsed.subjectDn || '–';
-        els.issuer.textContent = parsed.issuerDn || '–';
-        els.serial.textContent = parsed.serial || '–';
-        els.from.textContent = Number.isFinite(parsed.notBefore) ? fmtDate(parsed.notBefore) : '–';
-        els.until.textContent = Number.isFinite(parsed.notAfter) ? fmtDate(parsed.notAfter) : '–';
-        els.key.textContent = parsed.key || '–';
-        els.signature.textContent = parsed.signature || '–';
-        els.fp.textContent = fp ? fp.toUpperCase().replace(/(.{2})(?=.)/g, '$1:') : '–';
+      function failDecode(key) {
+        els.result.hidden = true;
+        els.certs.textContent = '';
+        els.count.textContent = '';
+        els.note.hidden = true;
+        els.note.textContent = '';
+        lastDecode = null;
+        showPemStatus(t(key), 'bad');
+      }
 
-        var expired = Number.isFinite(parsed.notAfter) && parsed.notAfter < Date.now();
-        var days = Number.isFinite(parsed.notAfter)
-          ? daysText(Math.max(Math.ceil((parsed.notAfter - Date.now()) / 864e5), 0)) : '';
-        els.chip.textContent = expired ? t('expired') : (days ? t('validDays', { days: days }) : '–');
-        els.chip.classList.toggle('expired', expired);
+      function certCountText(n) {
+        return n === 1 ? t('countOne') : t('countMany', { n: n });
+      }
 
-        var names = Array.isArray(parsed.dnsNames) ? parsed.dnsNames : [];
-        els.sanTitle.textContent = names.length ? t('sans', { n: names.length }) : t('noSan');
-        els.sanList.textContent = '';
-        names.forEach(function (name) {
-          var li = document.createElement('li');
-          li.textContent = name;
-          els.sanList.appendChild(li);
+      function renderPemResults() {
+        var certs = lastDecode.certs;
+        els.certs.textContent = '';
+        els.count.textContent = certCountText(certs.length);
+
+        certs.forEach(function (item, i) {
+          var parsed = item.parsed, fp = item.fp;
+          var card = els.template.content.firstElementChild.cloneNode(true);
+          var q = function (sel) { return card.querySelector(sel); };
+
+          q('.pem-cert-title').textContent = t('certNumber', { n: i + 1 });
+          q('.pem-v-subject').textContent = parsed.subjectDn || '–';
+          q('.pem-v-issuer').textContent = parsed.issuerDn || '–';
+          q('.pem-v-serial').textContent = parsed.serial || '–';
+          q('.pem-v-from').textContent = Number.isFinite(parsed.notBefore) ? fmtDate(parsed.notBefore) : '–';
+          q('.pem-v-until').textContent = Number.isFinite(parsed.notAfter) ? fmtDate(parsed.notAfter) : '–';
+          q('.pem-v-key').textContent = parsed.key || '–';
+          q('.pem-v-signature').textContent = parsed.signature || '–';
+          q('.pem-v-fp').textContent = fp ? fp.toUpperCase().replace(/(.{2})(?=.)/g, '$1:') : '–';
+
+          var expired = Number.isFinite(parsed.notAfter) && parsed.notAfter < Date.now();
+          var days = Number.isFinite(parsed.notAfter)
+            ? daysText(Math.max(Math.ceil((parsed.notAfter - Date.now()) / 864e5), 0)) : '';
+          var chip = q('.pem-chip');
+          chip.textContent = expired ? t('expired') : (days ? t('validDays', { days: days }) : '–');
+          chip.classList.toggle('expired', expired);
+
+          var names = Array.isArray(parsed.dnsNames) ? parsed.dnsNames : [];
+          q('.pem-san-title').textContent = names.length ? t('sans', { n: names.length }) : t('noSan');
+          var ul = q('.pem-san-list');
+          names.forEach(function (name) {
+            var li = document.createElement('li');
+            li.textContent = name;
+            ul.appendChild(li);
+          });
+
+          els.certs.appendChild(card);
         });
 
-        els.note.hidden = !multi;
-        if (multi) els.note.textContent = t('multi');
+        applyTranslations(); // ka kloonitud kaartide <dt>-sildid
+
+        var skipped = lastDecode.total - certs.length;
+        els.note.hidden = skipped < 1;
+        els.note.textContent = skipped > 0
+          ? t('partial', { okText: certCountText(certs.length) }) : '';
         els.result.hidden = false;
       }
 
       function decodePem() {
         var raw = els.input.value;
-        if (!String(raw).trim()) {
-          els.result.hidden = true;
-          els.note.hidden = true;
-          lastPem = null;
-          showPemStatus(t('errorEmpty'), 'bad');
-          return;
-        }
-        var b64 = extractCertB64(raw);
-        var bytes = b64 ? base64ToBytes(b64) : null;
-        var parsed = bytes ? parseX509(b64) : null;
-        if (!parsed) {
-          els.result.hidden = true;
-          els.note.hidden = true;
-          lastPem = null;
-          showPemStatus(t('errorInvalid'), 'bad');
-          return;
-        }
-        var multi = (String(raw).match(/-----BEGIN CERTIFICATE-----/g) || []).length > 1;
-        sha256Hex(bytes).then(function (fp) {
-          lastPem = { parsed: parsed, fp: fp, multi: multi };
-          fillPemResult(parsed, fp, multi);
+        if (!String(raw).trim()) { failDecode('errorEmpty'); return; }
+        var extracted = extractCertB64s(raw);
+        if (!extracted.list.length) { failDecode('errorInvalid'); return; }
+
+        var jobs = extracted.list.map(function (b64) {
+          var bytes = base64ToBytes(b64);
+          var parsed = bytes ? parseX509(b64) : null;
+          if (!parsed) return Promise.resolve(null);
+          return sha256Hex(bytes).then(function (fp) { return { parsed: parsed, fp: fp }; });
+        });
+
+        Promise.all(jobs).then(function (results) {
+          var ok = results.filter(Boolean);
+          if (!ok.length) { failDecode('errorInvalid'); return; }
+          lastDecode = { certs: ok, total: extracted.total };
+          renderPemResults();
           showPemStatus('', '');
         });
       }
@@ -612,8 +684,11 @@
       function clearPem() {
         els.input.value = '';
         els.result.hidden = true;
+        els.certs.textContent = '';
+        els.count.textContent = '';
         els.note.hidden = true;
-        lastPem = null;
+        els.note.textContent = '';
+        lastDecode = null;
         showPemStatus('', '');
       }
 
