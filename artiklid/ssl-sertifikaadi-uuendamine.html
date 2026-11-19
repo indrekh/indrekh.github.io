@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="et">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kuidas SSL-sertifikaati uuendada — ssl.ee</title>
+  <meta name="description" content="Samm-sammult juhend: Certbot, Cloudflare ja cPanel. Millal uuendada, kuidas automaatset uuendamist kontrollida ja mida teha, kui uuendus ebaõnnestub.">
+  <link rel="canonical" href="https://ssl.ee/artiklid/ssl-sertifikaadi-uuendamine.html">
+  <meta name="theme-color" content="#04060c">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <meta property="og:title" content="Kuidas SSL-sertifikaati uuendada">
+  <meta property="og:description" content="Certbot, Cloudflare ja cPanel samm-sammult: millal alustada, kuidas automatiseerida ja mida teha, kui uuendus ebaõnnestub.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://ssl.ee/artiklid/ssl-sertifikaadi-uuendamine.html">
+  <meta property="og:site_name" content="ssl.ee">
+  <meta property="og:locale" content="et_EE">
+  <meta property="og:image" content="https://ssl.ee/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ssl.ee — SSL-sertifikaadi kontrollija">
+  <meta property="article:published_time" content="2026-11-19">
+  <meta property="article:modified_time" content="2026-11-19">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Kuidas SSL-sertifikaati uuendada">
+  <meta name="twitter:description" content="Certbot, Cloudflare ja cPanel samm-sammult, koos tõrkeotsinguga.">
+  <meta name="twitter:image" content="https://ssl.ee/og-image.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Kuidas SSL-sertifikaati uuendada",
+    "description": "Samm-sammult juhend: Certbot, Cloudflare ja cPanel. Millal uuendada, kuidas automaatset uuendamist kontrollida ja mida teha, kui uuendus ebaõnnestub.",
+    "inLanguage": "et",
+    "datePublished": "2026-11-19",
+    "dateModified": "2026-11-19",
+    "author": { "@type": "Organization", "name": "ssl.ee", "url": "https://ssl.ee/" },
+    "publisher": { "@type": "Organization", "name": "ssl.ee", "url": "https://ssl.ee/" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://ssl.ee/artiklid/ssl-sertifikaadi-uuendamine.html" },
+    "image": "https://ssl.ee/og-image.png"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "ssl.ee", "item": "https://ssl.ee/" },
+      { "@type": "ListItem", "position": 2, "name": "Kuidas SSL-sertifikaati uuendada", "item": "https://ssl.ee/artiklid/ssl-sertifikaadi-uuendamine.html" }
+    ]
+  }
+  </script>
+  <link rel="stylesheet" href="../styles.css">
+  <script>
+    // Rakenda salvestatud teema enne CSS-i, et vältida heledat vilksatust
+    try { if (localStorage.getItem('ssl-ee-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../" aria-label="ssl.ee — avaleht">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#04241a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        </span>
+        <span class="brand-name">ssl<em>.ee</em></span>
+      </a>
+      <div class="header-nav">
+        <a class="api-link" href="../">← Kontrollija</a>
+        <a class="api-link" href="../pem.html">PEM-i dekodeerija</a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false"
+                aria-label="Vaheta heledat ja tumedat teemat" title="Vaheta heledat ja tumedat teemat">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <article class="article">
+      <header class="article-head">
+        <p class="article-kicker">Juhend · SSL/TLS</p>
+        <h1>Kuidas SSL-sertifikaati uuendada</h1>
+        <p class="article-lead">Aegunud sertifikaat on üks sagedasemaid põhjusi, miks veebileht äkki ei avane. Hea uudis: uuendamine on enamasti üks käsk või paar klikki — kui tead, kus ja millal seda teha.</p>
+        <p class="article-meta"><span>Avatud <time datetime="2026-11-19">19. novembril 2026</time></span><span>·</span><span>Lugemisaeg umbes 8 minutit</span></p>
+      </header>
+
+      <nav class="article-toc" aria-label="Sisukord">
+        <strong>Sisukord</strong>
+        <ol>
+          <li><a href="#miks">Miks sertifikaat aegub</a></li>
+          <li><a href="#millal">Millal uuendada</a></li>
+          <li><a href="#certbot">Let's Encrypt ja Certbot</a></li>
+          <li><a href="#cloudflare">Cloudflare</a></li>
+          <li><a href="#cpanel">cPanel ja Plesk</a></li>
+          <li><a href="#kontroll">Kontrollnimekiri pärast uuendust</a></li>
+          <li><a href="#torked">Levinumad tõrked</a></li>
+          <li><a href="#unustamine">Kuidas mitte enam unustada</a></li>
+          <li><a href="#kkk">Korduma kippuvad küsimused</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="miks">Miks sertifikaat aegub</h2>
+      <p>TLS-sertifikaat ei kehti igavesti. Igal sertifikaadil on <strong>kehtivuse algus ja lõpp</strong> ning brauser kontrollib mõlemat. Kui kuupäev on möödas, katkestab brauser ühenduse ja näitab hoiatust — kasutaja jaoks näeb see välja nagu katkine leht, isegi kui server ise töötab.</p>
+      <p>Lühike kehtivusaeg on turvameede: see sunnib sertifikaate regulaarselt uuendama ja piirab kahju, kui privaatvõti kunagi lekib. Seetõttu ei ole “uuendamine” tehniliselt sama sertifikaadi pikendamine — väljaandja annab alati <strong>uue sertifikaadi</strong> uue seerianumbri ja kehtivusajaga.</p>
+
+      <h2 id="millal">Millal uuendada</h2>
+      <p>Reegel on lihtne: alusta vähemalt <strong>30 päeva enne aegumist</strong>. Nii jääb piisavalt aega, kui DNS, port 80 või automaatika peaks alt vedama.</p>
+      <ul>
+        <li>Let's Encrypti vaikimisi sertifikaat kehtib <strong>90 päeva</strong>.</li>
+        <li>CA/B Forumi kava järgi lüheneb avalike TLS-sertifikaatide maksimaalne kehtivus järk-järgult: <strong>200 päeva alates 2026. aasta märtsist</strong>, 100 päeva alates 2027. ja 47 päeva alates 2029. aastast. Mida lühem kehtivus, seda olulisem on automaatika.</li>
+        <li>Kui sertifikaat on juba aegunud, ei aita ootamine — uuenda kohe ja kontrolli, miks automaatne uuendus ei käivitunud.</li>
+      </ul>
+      <p>Praeguse kehtivusaja näed kõige kiiremini <a href="../#checker">ssl.ee kontrollijast</a> või käsurealt:</p>
+      <pre><code>openssl s_client -connect example.ee:443 -servername example.ee &lt;/dev/null 2&gt;/dev/null \
+  | openssl x509 -noout -dates -issuer -subject</code></pre>
+
+      <h2 id="certbot">Variant A: Let's Encrypt ja Certbot</h2>
+      <p>Kui server on Linux ning sul on SSH-ligipääs, on Certbot kõige levinum lahendus. Näited on Debian/Ubuntu ja Nginx jaoks; Apache'i puhul asenda paketi- ja plugina nimed.</p>
+      <h3>1. Paigalda Certbot</h3>
+      <pre><code>sudo apt update
+sudo apt install certbot python3-certbot-nginx</code></pre>
+      <h3>2. Hangi sertifikaat</h3>
+      <pre><code>sudo certbot --nginx -d example.ee -d www.example.ee</code></pre>
+      <p>Certbot küsib e-posti, nõustumist tingimustega ja seda, kas suunata HTTP liiklus HTTPS-ile. Seejärel muudab ta Nginx-i konfiguratsiooni ning laeb selle uuesti.</p>
+      <h3>3. Kontrolli automaatset uuendamist</h3>
+      <pre><code>sudo certbot renew --dry-run
+systemctl list-timers | grep certbot</code></pre>
+      <p>Certbot paigaldab tavaliselt süsteemse taimeri (<code>certbot.timer</code>), mis käivitab uuenduse kaks korda ööpäevas. Uuendus toimub alles siis, kui sertifikaadil on jäänud alla 30 päeva — seega “midagi ei juhtu” on tavaline ja ootuspärane tulemus.</p>
+      <h3>4. Lisa reload-hook</h3>
+      <p>Uus sertifikaat jõustub alles siis, kui veebiserver selle uuesti laeb. Loo skript <code>/etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh</code>:</p>
+      <pre><code>#!/bin/sh
+systemctl reload nginx</code></pre>
+      <pre><code>sudo chmod +x /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh</code></pre>
+      <div class="article-note">
+        <p><strong>Nipp:</strong> DNS-01 väljakutse on vajalik wildcard-sertifikaadi (<code>*.example.ee</code>) puhul. Käsitsi (<code>--manual</code>) tehtud DNS-väljakutse ei uuene automaatselt — kasuta oma DNS-teenuse pluginat või API-põhist skripti.</p>
+      </div>
+
+      <h2 id="cloudflare">Variant B: Cloudflare</h2>
+      <p>Kui domeen on Cloudflare'i proxy taga (oranž pilv), haldab Cloudflare serva-sertifikaati ise. See tähendab, et enamikul juhtudel ei pea sa serveris Certbotiga tegelema.</p>
+      <ul>
+        <li><strong>Universal SSL</strong> — tasuta servasertifikaat, mida Cloudflare uuendab automaatselt. Kontrolli: SSL/TLS → Edge Certificates.</li>
+        <li><strong>Always Use HTTPS</strong> — lülita sisse, et HTTP suunataks automaatselt HTTPS-ile.</li>
+        <li><strong>SSL/TLS režiim</strong> — kasuta <em>Full (strict)</em>, kui originserveril on kehtiv sertifikaat. <em>Flexible</em> jätab serveri ja Cloudflare'i vahelise ühenduse krüptimata.</li>
+        <li><strong>Origin Certificate</strong> — Cloudflare'i välja antud sertifikaat originserverile; kehtib kuni 15 aastat ja seda ei pea nii tihti uuendama. Loo see SSL/TLS → Origin Server alt.</li>
+      </ul>
+      <div class="article-note warn">
+        <p><strong>Tähelepanu:</strong> kui kasutad lühiajalist Let's Encrypti sertifikaati koos Cloudflare'i <em>Full (strict)</em> režiimiga, peab ka originsertifikaat olema kehtiv. Cloudflare'i servasertifikaadi uuendamine ei uuenda sinu serveri oma.</p>
+      </div>
+
+      <h2 id="cpanel">Variant C: cPanel ja Plesk</h2>
+      <p>Jagumajutuse paneelides on uuendamine tavaliselt ühe nupuga.</p>
+      <ul>
+        <li><strong>cPanel:</strong> ava <em>SSL/TLS Status</em> ja klõpsa <em>Run AutoSSL</em>. Kontrolli, et domeen ja <code>www</code> oleksid nimekirjas ning staatus oleks “Valid”.</li>
+        <li><strong>Plesk:</strong> vali <em>Websites &amp; Domains → SSL/TLS Certificates → Let's Encrypt</em> ja uuenda sertifikaat. Plesk teeb seda ka automaatselt, kui see on lubatud.</li>
+      </ul>
+
+      <h2 id="kontroll">Kontrollnimekiri pärast uuendust</h2>
+      <p>Uuendus ise on alles pool tööd. Kontrolli järgmist:</p>
+      <ol>
+        <li><strong>Server teenindab uut sertifikaati.</strong> Võrdle kuupäevi käsuga <code>openssl s_client</code> või vaata tulemust <a href="../#checker">ssl.ee-s</a>.</li>
+        <li><strong>Ahel on täielik.</strong> Nginx-is kasuta <code>fullchain.pem</code>, mitte ainult lehesertifikaati. Puuduv vahesertifikaat põhjustab vanemates klientides vigu.</li>
+        <li><strong>Kõik nimed on kaetud.</strong> Kontrolli, et SAN-nimekiri sisaldab nii <code>example.ee</code> kui <code>www.example.ee</code>, kui mõlemad peavad töötama.</li>
+        <li><strong>Ümbersuunamine töötab.</strong> <code>http://</code> peab suunduma <code>https://</code>-le ühe hüppega.</li>
+        <li><strong>Segasisu (mixed content) on kadunud.</strong> Ava brauseri konsool ja otsi HTTP-linke piltidele, skriptidele või fontidele.</li>
+        <li><strong>Automaatika on tõestatud.</strong> <code>certbot renew --dry-run</code> peab lõppema ilma vigadeta.</li>
+      </ol>
+
+      <h2 id="torked">Levinumad tõrked</h2>
+      <table>
+        <thead><tr><th>Veateade või sümptom</th><th>Põhjus ja lahendus</th></tr></thead>
+        <tbody>
+          <tr><td><code>too many certificates already issued</code></td><td>Let's Encrypti päringupiirang. Oota või kasuta testimiseks staging-keskkonda (<code>--staging</code>).</td></tr>
+          <tr><td><code>Challenge failed</code> / connection refused</td><td>Port 80 on tulemüüri taga, DNS ei osuta õigesse serverisse või virtuaalhost ei vasta. Kontrolli <code>curl -I http://example.ee/.well-known/acme-challenge/test</code>.</td></tr>
+          <tr><td><code>CAA record prevents issuance</code></td><td>Domeenil on CAA-kirje, mis ei luba seda väljaandjat. Vaata <a href="caa-ja-dnssec.html">CAA ja DNSSEC juhendit</a>.</td></tr>
+          <tr><td><code>unable to get local issuer certificate</code></td><td>Puudub vahesertifikaat. Kasuta täielikku ahelat (<code>fullchain.pem</code>).</td></tr>
+          <tr><td>Sertifikaat on uus, aga brauser näitab ikka vana</td><td>Veebiserverit ei reload'itud või CDN vahendab vana sertifikaati. Kontrolli <code>systemctl reload nginx</code> ja CDN-i seadeid.</td></tr>
+          <tr><td><code>certificate is not yet valid</code></td><td>Serveri või kliendi kell on vale. Kontrolli NTP-d.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="unustamine">Kuidas mitte enam unustada</h2>
+      <p>Parim sertifikaat on see, mille uuendamist sa ei pea mäletama. Seadista kaks asja:</p>
+      <ul>
+        <li><strong>Automaatne uuendus</strong> — Certboti taimer, Cloudflare Universal SSL või hostingu AutoSSL.</li>
+        <li><strong>Väline kontroll</strong> — sõltumatu monitooring, mis hoiatab 30, 14 ja 7 päeva enne aegumist. See püüab kinni ka juhtumi, kui automaatika ise katki läheb.</li>
+      </ul>
+      <p>ssl.ee kontroll näitab jäänud päevade arvu ja märgib sertifikaadi “aegub varsti”, kui alla 30 päeva. Soovi korral lisa tulemuse lehelt ka meeldetuletus kalendrisse.</p>
+
+      <div class="article-cta">
+        <p>Kontrolli kohe, kas uuendus jõustus ja ahel on terve.</p>
+        <div class="article-cta-actions">
+          <a class="article-btn" href="../#checker">Kontrolli sertifikaati</a>
+          <a class="article-btn ghost" href="../pem.html">Ava PEM-i dekodeerija</a>
+        </div>
+      </div>
+
+      <section class="article-faq" id="kkk">
+        <h2>Korduma kippuvad küsimused</h2>
+        <details>
+          <summary>Kas uuendamine katkestab veebilehe töö?</summary>
+          <p>Uue sertifikaadi väljaandmine ise ei katkesta midagi. Lühike katkestus on võimalik ainult serveri reload'i hetkel, kui konfiguratsioonis on viga. Testi alati <code>nginx -t</code> või <code>apachectl configtest</code> enne reload'i.</p>
+        </details>
+        <details>
+          <summary>Kas tasuta Let's Encrypt on nõrgem kui tasuline sertifikaat?</summary>
+          <p>Ei. Krüpteerimise tugevus on sama. Erinevus on valideerimise tüübis (domeeni- vs organisatsioonivalideerimine) ja toe tasemes, mitte selles, kui tugevalt ühendus krüpteeritud on.</p>
+        </details>
+        <details>
+          <summary>Kas sama sertifikaati saab pikendada?</summary>
+          <p>Ei, väljaandja annab alati uue sertifikaadi. “Uuendamine” tähendab uue sertifikaadi hankimist ja vana asendamist.</p>
+        </details>
+        <details>
+          <summary>Miks on sertifikaadil mitu nime?</summary>
+          <p>SAN-väli (Subject Alternative Name) loetleb kõik nimed, mille jaoks sertifikaat kehtib — näiteks <code>example.ee</code> ja <code>www.example.ee</code>. Kui mõni nimi puudub, näitab brauser sellel aadressil hoiatust.</p>
+        </details>
+      </section>
+
+      <aside class="article-related">
+        <h2>Loe ka</h2>
+        <ul>
+          <li><a href="mis-on-pem-fail.html">Mis on PEM-fail ja kuidas seda lugeda</a></li>
+          <li><a href="caa-ja-dnssec.html">CAA ja DNSSEC seletatuna</a></li>
+          <li><a href="../api-docs.html">ssl.ee API: PEM ja ahel ühe curl-käsklusega</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-brand">ssl<em>.ee</em></p>
+      <p class="footer-tagline">Privaatsust austav SSL-sertifikaadi kontrollija — kõik päringud käivad sinu brauseris.</p>
+      <nav class="footer-nav" aria-label="Sisukord">
+        <a href="../">Kontrolli sertifikaati</a>
+        <a href="../pem.html">PEM-i dekodeerija</a>
+        <a href="../api-docs.html">API dokumentatsioon</a>
+        <a href="ssl-sertifikaadi-uuendamine.html">Sertifikaadi uuendamine</a>
+        <a href="mis-on-pem-fail.html">Mis on PEM-fail</a>
+        <a href="caa-ja-dnssec.html">CAA ja DNSSEC</a>
+      </nav>
+      <p class="footer-meta">© 2026 ssl.ee</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var THEME_KEY = 'ssl-ee-theme';
+      var themeToggle = document.getElementById('theme-toggle');
+      function detectTheme() {
+        try { return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; }
+        catch (e) { return 'dark'; }
+      }
+      function applyTheme(theme) {
+        document.documentElement.dataset.theme = theme;
+        if (themeToggle) themeToggle.setAttribute('aria-pressed', String(theme === 'light'));
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'light' ? '#f5f7fb' : '#04060c');
+        try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* privaatrežiim */ }
+      }
+      applyTheme(detectTheme());
+      if (themeToggle) {
+        themeToggle.addEventListener('click', function () {
+          applyTheme(detectTheme() === 'light' ? 'dark' : 'light');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

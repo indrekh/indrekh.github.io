@@ -383,6 +383,7 @@
               <li data-i18n-html="learn.step3">Kontrolli automaatset uuendamist: <code>sudo certbot renew --dry-run</code>. Certbot lisab ise ajastatud ülesande.</li>
             </ol>
             <p class="learn-tip" data-i18n="learn.tip">Nipp: kui kasutad Cloudflare'i, saab SSL-i hallata ka selle juhtpaneelilt – siis ei pea Certboti serveris käitama.</p>
+            <a class="learn-link" href="artiklid/ssl-sertifikaadi-uuendamine.html">Loe täpsemat uuendusjuhendit →</a>
           </div>
         </div>
       </div>
@@ -415,6 +416,33 @@
         </div>
       </div>
     </section>
+
+    <section class="guides" id="guides">
+      <div class="container">
+        <h2>Juhendid ja artiklid</h2>
+        <p class="guides-sub">Pikemad selgitused teemadel, mida kontrollija tulemus puudutab — ilma registreerimise ja reklaamideta.</p>
+        <div class="guide-grid">
+          <a class="guide-card" href="artiklid/ssl-sertifikaadi-uuendamine.html">
+            <span class="guide-kicker">Juhend</span>
+            <h3>Kuidas SSL-sertifikaati uuendada</h3>
+            <p>Certbot, Cloudflare ja cPanel samm-sammult: millal alustada, kuidas automatiseerida ja mida teha, kui uuendus ebaõnnestub.</p>
+            <span class="guide-more">Loe edasi →</span>
+          </a>
+          <a class="guide-card" href="artiklid/mis-on-pem-fail.html">
+            <span class="guide-kicker">Selgitus</span>
+            <h3>Mis on PEM-fail ja kuidas seda lugeda</h3>
+            <p>PEM, DER ja PKCS#12 selgelt: mida tähendavad BEGIN CERTIFICATE read ja milliseid openssl käske päriselt vaja läheb.</p>
+            <span class="guide-more">Loe edasi →</span>
+          </a>
+          <a class="guide-card" href="artiklid/caa-ja-dnssec.html">
+            <span class="guide-kicker">Selgitus</span>
+            <h3>CAA ja DNSSEC seletatuna</h3>
+            <p>Kuidas CAA-kirjed piiravad sertifikaadi väljaandjaid, mida DNSSEC juurde annab ja miks nende järjekord oluline on.</p>
+            <span class="guide-more">Loe edasi →</span>
+          </a>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -425,6 +453,7 @@
         <a href="#checker" data-i18n="footer.navCheck">Kontrolli sertifikaati</a>
         <a href="#learn" data-i18n="footer.navLearn">Sertifikaadi uuendamine</a>
         <a href="#faq" data-i18n="footer.navFaq">Korduma kippuvad küsimused</a>
+        <a href="#guides">Juhendid ja artiklid</a>
         <a href="api-docs.html" data-i18n="footer.navApi">API dokumentatsioon</a>
       </nav>
       <p class="footer-meta"><span data-i18n="footer.sources">Andmeallikad: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico</span> · <span id="footer-year"></span></p>

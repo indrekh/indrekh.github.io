@@ -16,6 +16,7 @@ milliseid aadresse see kaitseb.
 | `en/api-docs.html` | API dokumentatsioon (EN)                   |
 | `pem.html`     | PEM-i dekodeerija (ET)                         |
 | `en/pem.html`  | PEM-i dekodeerija (EN)                         |
+| `artiklid/`    | Kolm eestikeelset juhendit: sertifikaadi uuendamine, PEM-fail, CAA ja DNSSEC |
 | `sitemap.xml`  | Sitemap koos ET/EN `hreflang` alternatiividega |
 | `api/worker.js`| Eraldi Cloudflare Worker: PEM / täielik ahel   |
 | `api/wrangler.toml` | Workeri juurutuskonfiguratsioon          |

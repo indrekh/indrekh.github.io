@@ -55,4 +55,22 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://ssl.ee/en/pem.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://ssl.ee/pem.html"/>
   </url>
+  <url>
+    <loc>https://ssl.ee/artiklid/ssl-sertifikaadi-uuendamine.html</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ssl.ee/artiklid/mis-on-pem-fail.html</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ssl.ee/artiklid/caa-ja-dnssec.html</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>
