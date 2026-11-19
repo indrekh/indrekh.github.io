@@ -614,11 +614,8 @@
   }
 
   function detectLang() {
-    try {
-      const saved = localStorage.getItem('ssl-ee-lang');
-      if (saved === 'et' || saved === 'en') return saved;
-    } catch { /* privaatne režiim */ }
-    return 'et'; // ssl.ee on eestikeelne sait — vaikimisi eesti keel
+    // Keel tuleb URL-ilt: eestikeelne leht on /, ingliskeelne /en/.
+    return document.documentElement.lang === 'en' ? 'en' : 'et';
   }
 
   function t(key, vars) {
@@ -857,21 +854,20 @@
     document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
     document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel)); });
     const et = $('lang-et'), en = $('lang-en');
-    if (et) et.setAttribute('aria-pressed', String(lang === 'et'));
-    if (en) en.setAttribute('aria-pressed', String(lang === 'en'));
+    if (et) {
+      if (lang === 'et') et.setAttribute('aria-current', 'page');
+      else et.removeAttribute('aria-current');
+    }
+    if (en) {
+      if (lang === 'en') en.setAttribute('aria-current', 'page');
+      else en.removeAttribute('aria-current');
+    }
     if (els.themeToggle) {
       els.themeToggle.setAttribute('aria-label', t('nav.theme'));
       els.themeToggle.title = t('nav.theme');
     }
     renderHistory();
     if (lastRender) rerenderDynamic();
-  }
-
-  function setLang(next) {
-    if (next === lang) return;
-    lang = next;
-    try { localStorage.setItem('ssl-ee-lang', lang); } catch { /* privaatne režiim */ }
-    applyI18n();
   }
 
   function rerenderDynamic() {
@@ -2212,10 +2208,6 @@
   els.input.addEventListener('input', () => {
     if (!els.error.hidden) { els.error.hidden = true; lastRender = null; }
   });
-
-  const etBtn = $('lang-et'), enBtn = $('lang-en');
-  if (etBtn) etBtn.addEventListener('click', () => setLang('et'));
-  if (enBtn) enBtn.addEventListener('click', () => setLang('en'));
 
   els.copyPem.addEventListener('click', async () => {
     const text = els.certPem.textContent;

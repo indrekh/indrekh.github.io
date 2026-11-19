@@ -125,13 +125,14 @@ body {
   border: 1px solid var(--border-strong);
   border-radius: 999px; overflow: hidden;
 }
-.lang-switch button {
+.lang-switch a {
   appearance: none; border: 0; background: transparent;
   color: var(--muted); font: 600 13px/1 var(--font);
   padding: 8px 14px; cursor: pointer; transition: .18s;
+  text-decoration: none;
 }
-.lang-switch button:hover { color: var(--text); }
-.lang-switch button[aria-pressed="true"] {
+.lang-switch a:hover { color: var(--text); }
+.lang-switch a[aria-current="page"] {
   background: linear-gradient(135deg, rgba(16, 185, 129, .3), rgba(34, 211, 238, .22));
   color: #fff;
 }

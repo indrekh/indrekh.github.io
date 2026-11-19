@@ -6,6 +6,9 @@
   <title data-et="PEM-i dekodeerija — ssl.ee" data-en="PEM decoder — ssl.ee">PEM-i dekodeerija — ssl.ee</title>
   <meta name="description" content="Kleebi ühe või mitme sertifikaadi PEM-id või pelk base64 ja loe nende andmed otse brauseris. Subjekt, väljaandja, kehtivus, avalik võti, SHA-256 sõrmejälg ja SAN-nimed. Ühtegi päringut ei saadeta.">
   <link rel="canonical" href="https://ssl.ee/pem.html">
+  <link rel="alternate" hreflang="et" href="https://ssl.ee/pem.html">
+  <link rel="alternate" hreflang="en" href="https://ssl.ee/en/pem.html">
+  <link rel="alternate" hreflang="x-default" href="https://ssl.ee/pem.html">
   <meta name="theme-color" content="#04060c">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <meta property="og:title" content="PEM-i dekodeerija — ssl.ee">
@@ -103,8 +106,8 @@
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg>
         </button>
         <div class="lang-switch" role="group" aria-label="Keele valik / Language">
-          <button id="lang-et" type="button" aria-pressed="true">ET</button>
-          <button id="lang-en" type="button" aria-pressed="false">EN</button>
+          <a id="lang-et" href="pem.html" hreflang="et" lang="et" aria-current="page">ET</a>
+          <a id="lang-en" href="en/pem.html" hreflang="en" lang="en">EN</a>
         </div>
       </div>
     </div>
@@ -265,23 +268,20 @@
             if (v !== null) el.setAttribute(attr, v);
           });
         });
-        langEt.setAttribute('aria-pressed', String(lang === 'et'));
-        langEn.setAttribute('aria-pressed', String(lang === 'en'));
+        if (lang === 'et') langEt.setAttribute('aria-current', 'page');
+        else langEt.removeAttribute('aria-current');
+        if (lang === 'en') langEn.setAttribute('aria-current', 'page');
+        else langEn.removeAttribute('aria-current');
       }
 
       function setLang(next) {
         lang = next;
-        try { localStorage.setItem('ssl-ee-lang', lang); } catch (e) { /* privaatrežiim */ }
         document.documentElement.lang = lang;
         applyTranslations();
         if (lastDecode) renderPemResults();
       }
 
-      var savedLang = 'et';
-      try { savedLang = localStorage.getItem('ssl-ee-lang') || 'et'; } catch (e) { /* ignore */ }
-      setLang(savedLang === 'en' ? 'en' : 'et');
-      langEt.addEventListener('click', function () { setLang('et'); });
-      langEn.addEventListener('click', function () { setLang('en'); });
+      setLang(document.documentElement.lang === 'en' ? 'en' : 'et');
 
       /* ---------- Hele/tume teema ---------- */
 

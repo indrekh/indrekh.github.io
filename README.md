@@ -8,10 +8,15 @@ milliseid aadresse see kaitseb.
 
 | Fail           | Otstarve                                       |
 | -------------- | ---------------------------------------------- |
-| `index.html`   | Lehe struktuur (eesti + inglise keeles)        |
+| `index.html`   | Eestikeelne avaleht (`/`)                      |
+| `en/index.html`| Ingliskeelne avaleht (`/en/`)                  |
 | `styles.css`   | Tume/hele visuaal (rohelsed/sinised aktsendid)|
 | `app.js`       | Kontrollimise loogika, i18n, ajalugu          |
-| `api-docs.html`| API dokumentatsioon (ET/EN), link lehe päises  |
+| `api-docs.html`| API dokumentatsioon (ET)                       |
+| `en/api-docs.html` | API dokumentatsioon (EN)                   |
+| `pem.html`     | PEM-i dekodeerija (ET)                         |
+| `en/pem.html`  | PEM-i dekodeerija (EN)                         |
+| `sitemap.xml`  | Sitemap koos ET/EN `hreflang` alternatiividega |
 | `api/worker.js`| Eraldi Cloudflare Worker: PEM / täielik ahel   |
 | `api/wrangler.toml` | Workeri juurutuskonfiguratsioon          |
 | `favicon.svg`  | Lehe ikoon (rohkli lukk)                       |
@@ -159,7 +164,11 @@ Täpsemad näited, parameetrid ja veakoodid: `api-docs.html`.
 
 - CT logidest kuvatakse **uusim välja antud** sertifikaat; server teenindab
   mõnikord varasemat või muud – seepärast on lehel ka SSL Labsi süvalink.
-- Keelevalik (ET/EN) jäetakse meelde `localStorage`-i, ajalugu samuti.
-- Keeeltõlkeid saab täiendada `app.js` failis sõnastikes `I18N.et` / `I18N.en`.
+- Keel tuleb URL-ilt: eestikeelne leht on `/`, ingliskeelne `/en/`. Päises olev
+  ET/EN valik on tavaline link keeleversioonide vahel; `hreflang`-viited ja
+  `sitemap.xml` alt-lingid on mõlemas suunas. Ajalugu salvestatakse endiselt
+  `localStorage`-i.
+- Keeletõlkeid saab täiendada `app.js` failis sõnastikes `I18N.et` / `I18N.en`
+  ning `api-docs.html` ja `pem.html` inline-sõnastikes.
 - ICS-fail ja kõik uued kontrollid (CT/ahela võrdlus, CAA/DNSSEC) töötavad
   ainult brauseris – ükski domeen ega kalendriandmete sisu ei lähe ssl.ee serverisse.

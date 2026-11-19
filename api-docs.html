@@ -6,6 +6,9 @@
   <title data-et="ssl.ee API dokumentatsioon" data-en="ssl.ee API documentation">ssl.ee API dokumentatsioon</title>
   <meta name="description" content="ssl.ee API — hangi sertifikaadi PEM või täielik sertifikaadiahel ühe curl-käsklusega. Endpointid, parameetrid, näited ja veakoodid.">
   <link rel="canonical" href="https://ssl.ee/api-docs.html">
+  <link rel="alternate" hreflang="et" href="https://ssl.ee/api-docs.html">
+  <link rel="alternate" hreflang="en" href="https://ssl.ee/en/api-docs.html">
+  <link rel="alternate" hreflang="x-default" href="https://ssl.ee/api-docs.html">
   <meta name="theme-color" content="#04060c">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <meta property="og:title" content="ssl.ee API dokumentatsioon">
@@ -119,8 +122,8 @@
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg>
         </button>
         <div class="lang-switch" role="group" aria-label="Keele valik / Language">
-          <button id="lang-et" type="button" aria-pressed="true">ET</button>
-          <button id="lang-en" type="button" aria-pressed="false">EN</button>
+          <a id="lang-et" href="api-docs.html" hreflang="et" lang="et" aria-current="page">ET</a>
+          <a id="lang-en" href="en/api-docs.html" hreflang="en" lang="en">EN</a>
         </div>
       </div>
     </div>
@@ -246,7 +249,6 @@
   <script>
     (function () {
       function setLang(lang) {
-        try { localStorage.setItem('ssl-ee-lang', lang); } catch (e) { /* privaatrežiim */ }
         document.documentElement.lang = lang;
         document.querySelectorAll('[data-et]').forEach(function (el) {
           var v = el.getAttribute('data-' + lang);
@@ -262,14 +264,18 @@
             if (v !== null) el.setAttribute(attr, v);
           });
         });
-        document.getElementById('lang-et').setAttribute('aria-pressed', String(lang === 'et'));
-        document.getElementById('lang-en').setAttribute('aria-pressed', String(lang === 'en'));
+        var etLink = document.getElementById('lang-et');
+        var enLink = document.getElementById('lang-en');
+        if (etLink) {
+          if (lang === 'et') etLink.setAttribute('aria-current', 'page');
+          else etLink.removeAttribute('aria-current');
+        }
+        if (enLink) {
+          if (lang === 'en') enLink.setAttribute('aria-current', 'page');
+          else enLink.removeAttribute('aria-current');
+        }
       }
-      var saved = 'et';
-      try { saved = localStorage.getItem('ssl-ee-lang') || 'et'; } catch (e) { /* ignore */ }
-      setLang(saved === 'en' ? 'en' : 'et');
-      document.getElementById('lang-et').addEventListener('click', function () { setLang('et'); });
-      document.getElementById('lang-en').addEventListener('click', function () { setLang('en'); });
+      setLang(document.documentElement.lang === 'en' ? 'en' : 'et');
 
       // Hele/tume teema – sama loogika ja salvestusvõti mis avalehel
       var THEME_KEY = 'ssl-ee-theme';
