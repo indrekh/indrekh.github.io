@@ -76,6 +76,29 @@
       'share.title': 'SSL-sertifikaadi kontroll',
       'share.sans': 'Kaitstud domeenid',
       'share.source': 'Andmed',
+      'report.html': 'Laadi aruanne (HTML)',
+      'report.json': 'Laadi aruanne (JSON)',
+      'report.image': 'Laadi tulemus pildina (PNG)',
+      'report.saved': 'Aruanne alla laaditud.',
+      'report.imageSaved': 'Pilt alla laaditud.',
+      'report.failed': 'Aruande loomine ebaõnnestus.',
+      'report.imageFailed': 'Pildi loomine ebaõnnestus.',
+      'report.title': 'SSL-sertifikaadi aruanne',
+      'report.generated': 'Genereeritud',
+      'report.summary': 'Kokkuvõte',
+      'report.certificate': 'Sertifikaat',
+      'report.findings': 'Leiud',
+      'report.chain': 'Sertifikaadiahel',
+      'report.dns': 'CAA ja DNSSEC',
+      'report.timeline': 'Väljaandmise ajalugu',
+      'report.pem': 'Sertifikaadi PEM',
+      'report.noFindings': 'Leide pole.',
+      'report.reportFor': 'Aruanne: {host}',
+      'report.daysLeft': 'Päevi jäänud',
+      'report.daysSince': 'Päevi aegumisest',
+      'report.role.leaf': 'Leht',
+      'report.role.intermediate': 'Vahepealne',
+      'report.role.root': 'Juur',
       'learn.title': 'Sertifikaadi uuendamine ja tulemuse mõistmine',
       'learn.fieldsTitle': 'Mida tulemus tähendab?',
       'learn.glossIssuer': 'Väljaandja',
@@ -330,6 +353,29 @@
       'share.title': 'SSL certificate check',
       'share.sans': 'Covered hostnames',
       'share.source': 'Data',
+      'report.html': 'Download report (HTML)',
+      'report.json': 'Download report (JSON)',
+      'report.image': 'Download result image (PNG)',
+      'report.saved': 'Report downloaded.',
+      'report.imageSaved': 'Image downloaded.',
+      'report.failed': 'Could not create the report.',
+      'report.imageFailed': 'Could not create the image.',
+      'report.title': 'SSL certificate report',
+      'report.generated': 'Generated',
+      'report.summary': 'Summary',
+      'report.certificate': 'Certificate',
+      'report.findings': 'Findings',
+      'report.chain': 'Certificate chain',
+      'report.dns': 'CAA and DNSSEC',
+      'report.timeline': 'Issuance history',
+      'report.pem': 'Certificate PEM',
+      'report.noFindings': 'No findings.',
+      'report.reportFor': 'Report: {host}',
+      'report.daysLeft': 'Days left',
+      'report.daysSince': 'Days since expiry',
+      'report.role.leaf': 'Leaf',
+      'report.role.intermediate': 'Intermediate',
+      'report.role.root': 'Root',
       'learn.title': 'Renewing a certificate and understanding the result',
       'learn.fieldsTitle': 'What the result means',
       'learn.glossIssuer': 'Issuer',
@@ -582,6 +628,7 @@
     obs: $('obs'), obsGrade: $('obs-grade'), obsScore: $('obs-score'), obsLink: $('obs-link'),
     sourceNote: $('source-note'), linkSsllabs: $('link-ssllabs'), linkCrtsh: $('link-crtsh'),
     shareLink: $('share-link'), copyResult: $('copy-result'), addReminder: $('add-reminder'),
+    exportReport: $('export-report'), exportJson: $('export-json'), shareImage: $('share-image'),
     shareStatus: $('share-status'),
     history: $('history'), historyList: $('history-list'), historyClear: $('history-clear'),
     footerYear: $('footer-year'),
@@ -1399,6 +1446,378 @@
     ].join('\n');
   }
 
+  /* ---------- Aruande eksport ja jagamispilt ---------- */
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[ch]));
+  }
+
+  function reportTimestamp(d) {
+    try {
+      return new Intl.DateTimeFormat(lang === 'et' ? 'et-EE' : 'en-GB', {
+        dateStyle: 'long', timeStyle: 'short',
+      }).format(d);
+    } catch { return d.toISOString(); }
+  }
+
+  function reportFilename(host) {
+    const safe = String(host || 'domain').toLowerCase()
+      .replace(/[^a-z0-9.-]+/g, '-').replace(/^-+|-+$/g, '') || 'domain';
+    return 'ssl-ee-report-' + safe + '-' + new Date().toISOString().slice(0, 10);
+  }
+
+  function collectReport() {
+    if (!lastRender || lastRender.type !== 'result') return null;
+    const data = lastRender.data;
+    const c = data.cert;
+    const now = Date.now();
+    const status = statusOf(c, data.hasActive);
+    const daysLeft = Math.max(Math.ceil((c.notAfter - now) / 864e5), 0);
+    const daysSince = Math.max(Math.floor((now - c.notAfter) / 864e5), 0);
+    const parsed = data.parsed || (c.pemData ? parseX509(c.pemData) : null);
+    const findings = buildFindings(data).map((f) => ({
+      level: f.level,
+      key: f.key,
+      title: t(f.key, f.vars),
+      detail: t(f.key + 'D', f.vars),
+    }));
+    const statusText = status === 'expired'
+      ? (daysSince <= 0 ? t('chip.expiredToday') : t('chip.expiredAgo', { n: daysSince }))
+      : daysText(daysLeft) + ' ' + t('gauge.caption.valid');
+    return {
+      data, c, parsed, status, daysLeft, daysSince, findings,
+      generatedAt: new Date(), statusText,
+    };
+  }
+
+  function buildReportJson(r) {
+    const c = r.c;
+    const parsed = r.parsed || {};
+    return {
+      generator: 'ssl.ee',
+      generatedAt: r.generatedAt.toISOString(),
+      language: lang,
+      url: shareUrl(r.data.host),
+      domain: r.data.host,
+      status: r.status,
+      daysLeft: r.status === 'expired' ? 0 : r.daysLeft,
+      daysSince: r.status === 'expired' ? r.daysSince : 0,
+      certificate: {
+        issuer: c.issuer || null,
+        notBefore: new Date(c.notBefore).toISOString(),
+        notAfter: new Date(c.notAfter).toISOString(),
+        sha256: c.sha256 || null,
+        serial: parsed.serial || null,
+        subjectDn: parsed.subjectDn || null,
+        signature: parsed.signature || null,
+        key: parsed.key || null,
+        certType: c.certType || null,
+        revoked: !!c.revoked,
+        dnsNames: Array.isArray(c.dnsNames) ? c.dnsNames : [],
+        pem: c.pemData ? toPem(c.pemData) : null,
+      },
+      findings: r.findings,
+      chainCheck: r.data.chainCheck || null,
+      chainTree: r.data.chainTree || null,
+      dns: r.data.dns || null,
+      observatory: r.data.obs || null,
+      timeline: r.data.timeline || null,
+      source: r.data.source || null,
+    };
+  }
+
+  function buildReportHtml(r) {
+    const { data, c, parsed, status, daysLeft, daysSince, findings, generatedAt, statusText } = r;
+    const host = data.host;
+    const sans = Array.isArray(c.dnsNames) ? c.dnsNames : [];
+    const esc = escapeHtml;
+    const row = (label, value) => '<tr><th>' + esc(label) + '</th><td>' + esc(value == null ? '–' : value) + '</td></tr>';
+
+    const findingHtml = findings.length
+      ? findings.map((f) => '<li class="finding ' + esc(f.level) + '"><span class="dot"></span><div><strong>' +
+          esc(f.title) + '</strong><p>' + esc(f.detail) + '</p></div></li>').join('')
+      : '<li class="empty">' + esc(t('report.noFindings')) + '</li>';
+
+    const sanHtml = sans.length
+      ? sans.map((n) => '<code>' + esc(n) + '</code>').join(' ')
+      : '<span class="muted">–</span>';
+
+    const chainCheck = data.chainCheck;
+    const chainCheckHtml = chainCheck
+      ? '<section><h2>' + esc(t('chaincheck.title')) + '</h2><p class="status-line ' + esc(chainCheck.kind) + '">' +
+        esc(t('chaincheck.' + chainCheck.kind)) + '</p>' +
+        (chainCheck.ct && chainCheck.chain
+          ? '<table class="kv"><tbody>' + row(t('chaincheck.ctFp'), chainCheck.ct) + row(t('chaincheck.chainFp'), chainCheck.chain) + '</tbody></table>'
+          : '') + '</section>'
+      : '';
+
+    const chainNodes = Array.isArray(data.chainTree) ? data.chainTree : [];
+    const chainHtml = chainNodes.length
+      ? '<section><h2>' + esc(t('report.chain')) + '</h2><table class="grid-table"><thead><tr><th>' +
+        esc(t('report.certificate')) + '</th><th>CA</th><th>' + esc(t('detail.validUntil')) + '</th></tr></thead><tbody>' +
+        chainNodes.map((n) => '<tr><td><span class="role">' + esc(t('report.role.' + n.role)) + '</span> ' +
+          esc(n.subject) + '</td><td>' + esc(n.issuer) + '</td><td>' +
+          esc(Number.isFinite(n.notAfter) ? fmtDate(n.notAfter) : '–') + '</td></tr>').join('') +
+        '</tbody></table></section>'
+      : '';
+
+    const dns = data.dns;
+    const dnsHtml = dns
+      ? '<section><h2>' + esc(t('report.dns')) + '</h2><table class="kv"><tbody>' +
+        row(t('dns.caa'), dns.caa && dns.caa.length
+          ? dns.caa.map((x) => x.tag + ': ' + x.value).join(' · ')
+          : t('dns.caaNone')) +
+        row(t('dns.dnssec'), t(dns.ad ? 'dns.dnssecOn' : 'dns.dnssecOff')) +
+        '</tbody></table></section>'
+      : '';
+
+    const obs = data.obs;
+    const obsHtml = obs && obs.grade
+      ? '<section><h2>' + esc(t('obs.title')) + '</h2><p><strong>' + esc(obs.grade) + '</strong>' +
+        (Number.isFinite(Number(obs.score)) ? ' · ' + esc(t('obs.score', { score: obs.score })) : '') +
+        '</p></section>'
+      : '';
+
+    const timeline = data.timeline;
+    const timelineHtml = timeline && timeline.items && timeline.items.length
+      ? '<section><h2>' + esc(t('report.timeline')) + '</h2><table class="grid-table"><thead><tr><th>' +
+        esc(t('detail.validFrom')) + '</th><th>' + esc(t('detail.issuer')) + '</th></tr></thead><tbody>' +
+        timeline.items.map((x) => '<tr><td>' + esc(fmtDate(x.ts)) + '</td><td>' + esc(x.issuer || '–') + '</td></tr>').join('') +
+        '</tbody></table></section>'
+      : '';
+
+    const pemHtml = c.pemData
+      ? '<section><details><summary>' + esc(t('report.pem')) + '</summary><pre>' + esc(toPem(c.pemData)) + '</pre></details></section>'
+      : '';
+
+    const certRows = [
+      row(t('report.certificate'), c.certType === 'precert' ? t('certdetails.precert') : 'X.509'),
+      row(t('detail.issuer'), c.issuer || '–'),
+      row(t('detail.validFrom'), fmtDate(c.notBefore)),
+      row(t('detail.validUntil'), fmtDate(c.notAfter)),
+      row(t('detail.fingerprint'), c.sha256 ? c.sha256.toLowerCase() : '–'),
+    ];
+    if (parsed) {
+      certRows.push(row(t('certdetails.serial'), parsed.serial));
+      certRows.push(row(t('certdetails.subject'), parsed.subjectDn));
+      certRows.push(row(t('certdetails.algorithm'), parsed.signature));
+      certRows.push(row(t('certdetails.key'), parsed.key));
+    }
+    if (c.revoked) certRows.push(row(t('badge.revoked'), t('badge.revokedFull')));
+
+    return '<!doctype html>\n<html lang="' + esc(lang) + '"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>' + esc(t('report.title') + ' — ' + host) + '</title>' +
+      '<style>' +
+      '*{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:#0f172a;font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}' +
+      'main{max-width:920px;margin:0 auto;padding:40px 24px 64px}' +
+      'header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:28px}' +
+      '.brand{font-size:24px;font-weight:800;letter-spacing:-.02em}.brand em{color:#059669;font-style:normal}' +
+      '.meta{color:#64748b;font-size:12.5px}h1{font-size:30px;line-height:1.2;margin:0 0 6px;letter-spacing:-.02em}' +
+      '.sub{color:#475569;margin:0 0 22px}.pill{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:9px 16px;font-weight:700;font-size:13px;margin-bottom:26px}' +
+      '.pill.valid{background:#d1fae5;color:#047857}.pill.expiring{background:#fef3c7;color:#b45309}.pill.expired{background:#fee2e2;color:#b91c1c}' +
+      '.pill .dot{width:8px;height:8px;border-radius:50%;background:currentColor}' +
+      'section{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px 22px;margin:0 0 16px}' +
+      'h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin:0 0 14px}' +
+      '.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}' +
+      '.summary div{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px}' +
+      '.summary span{display:block;color:#64748b;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}' +
+      '.summary strong{font-size:15px;overflow-wrap:anywhere}' +
+      'table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;padding:8px 0;border-bottom:1px solid #eef2f7;font-size:13.5px}' +
+      'tr:last-child th,tr:last-child td{border-bottom:0}.kv th{width:38%;color:#64748b;font-weight:600}.kv td{overflow-wrap:anywhere}' +
+      '.grid-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;border-bottom:1px solid #e2e8f0}' +
+      '.grid-table td{font-size:13px}.role{display:inline-block;background:#e2e8f0;border-radius:5px;padding:1px 6px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}' +
+      'code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;padding:2px 6px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}' +
+      '.sans{display:flex;flex-wrap:wrap;gap:6px}.muted{color:#94a3b8}' +
+      '.findings{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}' +
+      '.finding{display:flex;gap:10px;align-items:flex-start}.finding .dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex:none;background:#94a3b8}' +
+      '.finding.pass .dot{background:#059669}.finding.info .dot{background:#0284c7}.finding.warn .dot{background:#d97706}.finding.fail .dot{background:#dc2626}' +
+      '.finding strong{display:block;font-size:13.5px}.finding p{margin:2px 0 0;color:#64748b;font-size:12.5px}.finding.empty{color:#64748b}' +
+      '.status-line{margin:0;font-weight:600}.status-line.ok{color:#047857}.status-line.mismatch{color:#b45309}.status-line.unknown,.status-line.noFp{color:#64748b}' +
+      'details summary{cursor:pointer;font-weight:600;color:#334155}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;margin:12px 0 0}' +
+      'footer{color:#64748b;font-size:12px;margin-top:24px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}' +
+      '@media print{body{background:#fff}main{max-width:none;padding:0}section{border-color:#ddd;break-inside:avoid}}' +
+      '</style></head><body><main>' +
+      '<header><div class="brand">ssl<em>.ee</em></div><div class="meta">' + esc(t('report.generated')) + ': ' + esc(reportTimestamp(generatedAt)) + '</div></header>' +
+      '<h1>' + esc(t('report.title')) + '</h1><p class="sub">' + esc(t('report.reportFor', { host })) + '</p>' +
+      '<div class="pill ' + esc(status) + '"><span class="dot"></span>' + esc(t('status.' + status)) + '</div>' +
+      '<p class="sub">' + esc(statusText) + '</p>' +
+      '<section><h2>' + esc(t('report.summary')) + '</h2><div class="summary">' +
+      '<div><span>' + esc(t('detail.issuer')) + '</span><strong>' + esc(c.issuer || '–') + '</strong></div>' +
+      '<div><span>' + esc(t('detail.validUntil')) + '</span><strong>' + esc(fmtDate(c.notAfter)) + '</strong></div>' +
+      '<div><span>' + esc(status === 'expired' ? t('report.daysSince') : t('report.daysLeft')) + '</span><strong>' +
+      esc(status === 'expired' ? daysSince : daysLeft) + '</strong></div>' +
+      '<div><span>' + esc(t('share.sans')) + '</span><strong>' + esc(sans.length) + '</strong></div>' +
+      '</div></section>' +
+      '<section><h2>' + esc(t('report.certificate')) + '</h2><table class="kv"><tbody>' + certRows.join('') + '</tbody></table></section>' +
+      '<section><h2>' + esc(t('share.sans')) + '</h2><div class="sans">' + sanHtml + '</div></section>' +
+      '<section><h2>' + esc(t('report.findings')) + '</h2><ul class="findings">' + findingHtml + '</ul></section>' +
+      chainCheckHtml + chainHtml + dnsHtml + obsHtml + timelineHtml + pemHtml +
+      '<footer><span>' + esc(t('share.source')) + ': ' + esc(data.source || '–') + '</span><span>' + esc(shareUrl(host)) + '</span></footer>' +
+      '</main></body></html>';
+  }
+
+  function exportReport(format) {
+    const r = collectReport();
+    if (!r) return;
+    try {
+      const base = reportFilename(r.data.host);
+      if (format === 'json') {
+        saveTextFile(JSON.stringify(buildReportJson(r), null, 2) + '\n', base + '.json', 'application/json;charset=utf-8');
+      } else {
+        saveTextFile(buildReportHtml(r), base + '.html', 'text/html;charset=utf-8');
+      }
+      showShareStatus(t('report.saved'));
+    } catch (e) {
+      showShareStatus(t('report.failed'), true);
+    }
+  }
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    const radius = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + w, y, x + w, y + h, radius);
+    ctx.arcTo(x + w, y + h, x, y + h, radius);
+    ctx.arcTo(x, y + h, x, y, radius);
+    ctx.arcTo(x, y, x + w, y, radius);
+    ctx.closePath();
+  }
+
+  function fittedText(ctx, text, x, y, maxWidth, maxSize, minSize, weight, family) {
+    let size = maxSize;
+    for (;;) {
+      ctx.font = weight + ' ' + size + 'px ' + family;
+      if (ctx.measureText(text).width <= maxWidth || size <= minSize) break;
+      size -= 2;
+    }
+    ctx.fillText(text, x, y);
+    return size;
+  }
+
+  function buildShareCanvas() {
+    const r = collectReport();
+    if (!r) return null;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 630;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    const light = detectTheme() === 'light';
+    const C = light ? {
+      bg: '#f5f7fb', panel: '#ffffff', text: '#0f172a', muted: '#64748b',
+      border: 'rgba(15,23,42,.12)', accent: '#059669', accentSoft: 'rgba(5,150,105,.13)',
+      glow: 'rgba(8,145,178,.13)',
+    } : {
+      bg: '#04060c', panel: '#0b1420', text: '#f8fafc', muted: '#94a3b8',
+      border: 'rgba(148,163,184,.22)', accent: '#10b981', accentSoft: 'rgba(16,185,129,.16)',
+      glow: 'rgba(34,211,238,.16)',
+    };
+    const family = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+
+    ctx.fillStyle = C.bg;
+    ctx.fillRect(0, 0, 1200, 630);
+    const glow = ctx.createRadialGradient(1010, 70, 0, 1010, 70, 540);
+    glow.addColorStop(0, C.glow);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, 1200, 630);
+
+    // Brändi lukk
+    roundRectPath(ctx, 88, 62, 66, 66, 16);
+    ctx.fillStyle = C.accentSoft;
+    ctx.fill();
+    ctx.strokeStyle = C.accent;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(121, 91, 11, Math.PI, 0);
+    ctx.stroke();
+    roundRectPath(ctx, 105, 91, 32, 24, 6);
+    ctx.fillStyle = C.accent;
+    ctx.fill();
+
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = '800 36px ' + family;
+    ctx.fillStyle = C.text;
+    ctx.fillText('ssl', 174, 108);
+    const brandW = ctx.measureText('ssl').width;
+    ctx.fillStyle = C.accent;
+    ctx.fillText('.ee', 174 + brandW, 108);
+
+    // Staatuse silt
+    const statusLabel = t('status.' + r.status);
+    ctx.font = '700 19px ' + family;
+    const pillW = Math.min(ctx.measureText(statusLabel).width + 48, 430);
+    const pillX = 1112 - pillW;
+    roundRectPath(ctx, pillX, 72, pillW, 46, 23);
+    ctx.fillStyle = C.accentSoft;
+    ctx.fill();
+    ctx.fillStyle = C.accent;
+    ctx.fillText(statusLabel, pillX + 24, 102);
+
+    // Domeen ja olek
+    ctx.fillStyle = C.text;
+    fittedText(ctx, r.data.host, 88, 250, 1024, 68, 34, '800', family);
+    ctx.fillStyle = C.accent;
+    fittedText(ctx, r.statusText, 88, 310, 1024, 30, 19, '600', family);
+
+    // Eraldusjoon
+    ctx.strokeStyle = C.border;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(88, 352);
+    ctx.lineTo(1112, 352);
+    ctx.stroke();
+
+    // Kolm veergu
+    const cols = [
+      { x: 88, w: 330, label: t('detail.issuer'), value: r.c.issuer || '–' },
+      { x: 470, w: 330, label: t('detail.validUntil'), value: fmtDate(r.c.notAfter) },
+      { x: 852, w: 260, label: t('share.sans'), value: String(Array.isArray(r.c.dnsNames) ? r.c.dnsNames.length : 0) },
+    ];
+    for (const col of cols) {
+      ctx.font = '700 14px ' + family;
+      ctx.fillStyle = C.muted;
+      ctx.fillText(col.label.toUpperCase(), col.x, 405);
+      ctx.fillStyle = C.text;
+      fittedText(ctx, col.value, col.x, 446, col.w, 25, 14, '700', family);
+    }
+
+    // Jalus
+    ctx.font = '500 15px ' + family;
+    ctx.fillStyle = C.muted;
+    ctx.fillText(t('report.generated') + ': ' + reportTimestamp(r.generatedAt), 88, 558);
+    ctx.font = '800 22px ' + family;
+    ctx.fillStyle = C.text;
+    ctx.fillText('ssl', 1040, 560);
+    const fw = ctx.measureText('ssl').width;
+    ctx.fillStyle = C.accent;
+    ctx.fillText('.ee', 1040 + fw, 560);
+
+    ctx.fillStyle = C.accent;
+    ctx.fillRect(0, 624, 1200, 6);
+    return canvas;
+  }
+
+  function downloadShareImage() {
+    const r = collectReport();
+    if (!r) return;
+    const canvas = buildShareCanvas();
+    if (!canvas || typeof canvas.toBlob !== 'function') {
+      showShareStatus(t('report.imageFailed'), true);
+      return;
+    }
+    const name = reportFilename(r.data.host).replace('ssl-ee-report-', 'ssl-ee-result-') + '.png';
+    canvas.toBlob((blob) => {
+      if (!blob) { showShareStatus(t('report.imageFailed'), true); return; }
+      saveBlobFile(blob, name);
+      showShareStatus(t('report.imageSaved'));
+    }, 'image/png');
+  }
+
   async function copyShareLink(host) {
     if (!host) return;
     const url = shareUrl(host);
@@ -1793,8 +2212,7 @@
     }
   }
 
-  function saveTextFile(text, filename, mime) {
-    const blob = new Blob([text], { type: mime || 'text/plain;charset=utf-8' });
+  function saveBlobFile(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1803,6 +2221,10 @@
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+
+  function saveTextFile(text, filename, mime) {
+    saveBlobFile(new Blob([text], { type: mime || 'text/plain;charset=utf-8' }), filename);
   }
 
   function savePemFile(text, filename) {
@@ -2228,6 +2650,9 @@
   });
 
   els.copyResult.addEventListener('click', copyCurrentResult);
+  if (els.exportReport) els.exportReport.addEventListener('click', () => exportReport('html'));
+  if (els.exportJson) els.exportJson.addEventListener('click', () => exportReport('json'));
+  if (els.shareImage) els.shareImage.addEventListener('click', downloadShareImage);
 
   els.copyCurl.addEventListener('click', () => copyCommand('curl'));
   els.copyOpenssl.addEventListener('click', () => copyCommand('openssl'));

@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-et="PEM-i dekodeerija — ssl.ee" data-en="PEM decoder — ssl.ee">PEM decoder — ssl.ee</title>
+  <meta name="description" content="Paste one or several certificate PEMs or plain base64 and read their details right in your browser. Subject, issuer, validity, public key, SHA-256 fingerprint and SAN names. No requests are sent.">
+  <link rel="canonical" href="https://ssl.ee/en/pem.html">
+  <link rel="alternate" hreflang="et" href="https://ssl.ee/pem.html">
+  <link rel="alternate" hreflang="en" href="https://ssl.ee/en/pem.html">
+  <link rel="alternate" hreflang="x-default" href="https://ssl.ee/pem.html">
+  <meta name="theme-color" content="#04060c">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <meta property="og:title" content="PEM decoder — ssl.ee">
+  <meta property="og:description" content="Read the details of one or several X.509 certificates right in your browser — without a single network request.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ssl.ee/en/pem.html">
+  <meta property="og:site_name" content="ssl.ee">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="https://ssl.ee/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ssl.ee — SSL certificate checker">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PEM decoder — ssl.ee">
+  <meta name="twitter:description" content="Read the details of one or several X.509 certificates right in your browser — without a single network request.">
+  <meta name="twitter:image" content="https://ssl.ee/og-image.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "ssl.ee", "item": "https://ssl.ee/en/" },
+      { "@type": "ListItem", "position": 2, "name": "PEM decoder", "item": "https://ssl.ee/en/pem.html" }
+    ]
+  }
+  </script>
+  <link rel="stylesheet" href="../styles.css">
+  <script>
+    // Apply the saved theme before CSS to avoid a light flash
+    try { if (localStorage.getItem('ssl-ee-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) {}
+  </script>
+  <style>
+    .pem-page { padding: 56px 0 80px; max-width: 900px; }
+    .pem-page-head { text-align: center; margin-bottom: 40px; }
+    .pem-page-head h1 { font-size: clamp(28px, 4.5vw, 42px); margin: 14px 0 12px; letter-spacing: -.02em; }
+    .pem-page-head p:not(.hero-badge) { color: var(--muted); max-width: 660px; margin: 0 auto; font-size: 15px; line-height: 1.65; }
+    .api-link {
+      text-decoration: none; font-size: 12.5px; font-weight: 700; color: var(--green);
+      padding: 7px 13px; border-radius: 999px; border: 1px solid rgba(52, 211, 153, .3);
+      background: rgba(52, 211, 153, .08); transition: .18s;
+    }
+    .api-link:hover { background: rgba(52, 211, 153, .18); color: #fff; }
+    :root[data-theme="light"] .api-link:hover { background: rgba(4, 120, 87, .9); border-color: rgba(4, 120, 87, .6); color: #fff; }
+    .header-nav { display: flex; align-items: center; gap: 12px; }
+    .pem-card { max-width: 820px; margin: 0 auto; }
+    .pem-count { font: 700 12.5px/1 var(--font); color: var(--muted); }
+    .pem-certs { display: flex; flex-direction: column; gap: 18px; }
+    .pem-cert {
+      background: rgba(2, 6, 14, .28); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px;
+    }
+    .pem-cert-head {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
+    }
+    .pem-cert-title { margin: 0; font-size: 15.5px; }
+    .pem-cert .san-block { margin-top: 16px; padding-top: 14px; }
+    .pem-cert .san-block h4 {
+      margin: 0 0 10px; font-size: 12.5px; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--faint); font-weight: 700;
+    }
+    :root[data-theme="light"] .pem-cert { background: rgba(15, 23, 42, .025); }
+    .privacy-note {
+      max-width: 820px; margin: 20px auto 0;
+      border-left: 3px solid var(--blue); background: rgba(96, 165, 250, .07);
+      border-radius: 0 10px 10px 0; padding: 12px 16px;
+      font-size: 13.5px; line-height: 1.6; color: var(--muted);
+    }
+    .privacy-note strong { color: var(--text); }
+    @media (max-width: 620px) {
+      .header-nav { gap: 8px; }
+      .api-link { font-size: 11px; padding: 6px 9px; }
+      .pem-page { padding: 36px 0 60px; }
+      .pem-cert { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../" aria-label="ssl.ee — home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#04241a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+        </span>
+        <span class="brand-name">ssl<em>.ee</em></span>
+      </a>
+      <div class="header-nav">
+        <a class="api-link" href="../" data-et="← Tagasi kontrollijasse" data-en="← Back to checker">← Back to checker</a>
+        <a class="api-link" href="api-docs.html" data-et="API" data-en="API">API</a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch between light and dark theme" title="Switch between light and dark theme" data-et-aria-label="Vaheta heledat ja tumedat teemat" data-en-aria-label="Switch between light and dark theme" data-et-title="Vaheta heledat ja tumedat teemat" data-en-title="Switch between light and dark theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"></path></svg>
+        </button>
+        <div class="lang-switch" role="group" aria-label="Language / Keele valik">
+          <a id="lang-et" href="../pem.html" hreflang="et" lang="et">ET</a>
+          <a id="lang-en" href="pem.html" hreflang="en" lang="en" aria-current="page">EN</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container pem-page">
+    <div class="pem-page-head">
+      <p class="hero-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 4.4-3.4 8.5-8 9-4.6-.5-8-4.6-8-9V7l8-4z"></path><path d="M9 12l2 2 4-4"></path></svg>
+        <span data-et="Brauseris · ilma võrgupäringuteta" data-en="In your browser · no network requests">In your browser · no network requests</span>
+      </p>
+      <h1 data-et="PEM-i dekodeerija" data-en="PEM decoder">PEM decoder</h1>
+      <p data-et="Kleebi ühe või mitme sertifikaadi PEM-id (või pelgad base64-plokid) – loeme kõik andmed otse sinu brauseris. Ühtegi päringut ei saadeta." data-en="Paste one or several certificate PEMs (or plain base64 blocks) – we read all of them right in your browser. No requests are sent.">Paste one or several certificate PEMs (or plain base64 blocks) – we read all of them right in your browser. No requests are sent.</p>
+    </div>
+
+    <section class="pem-card" aria-labelledby="pem-card-title">
+      <div class="pem-field">
+        <label for="pem-input" data-et="Sertifikaatide PEM-id" data-en="Certificate PEMs">Certificate PEMs</label>
+        <textarea id="pem-input" class="pem-input" rows="8" spellcheck="false" autocapitalize="none" autocomplete="off" placeholder="Paste PEMs here…" data-et-placeholder="Kleebi PEM-id siia…" data-en-placeholder="Paste PEMs here…"></textarea>
+      </div>
+      <div class="pem-actions">
+        <button type="button" class="share-btn pem-decode-btn" id="pem-decode-btn" data-et="Dekodeeri" data-en="Decode">Decode</button>
+        <button type="button" class="share-btn" id="pem-clear-btn" data-et="Tühjenda" data-en="Clear">Clear</button>
+        <span id="pem-status" class="pem-status" role="status" hidden=""></span>
+      </div>
+
+      <div id="pem-result" class="pem-result" hidden="">
+        <div class="pem-result-head">
+          <h2 id="pem-card-title" data-et="Dekodeeritud sertifikaadid" data-en="Decoded certificates">Decoded certificates</h2>
+          <span id="pem-count" class="pem-count"></span>
+        </div>
+        <div id="pem-certs" class="pem-certs"></div>
+        <p id="pem-note" class="pem-note" hidden=""></p>
+      </div>
+
+      <template id="pem-cert-template">
+        <article class="pem-cert">
+          <div class="pem-cert-head">
+            <h3 class="pem-cert-title"></h3>
+            <span class="pem-chip"></span>
+          </div>
+          <dl class="details pem-details">
+            <div class="detail">
+              <dt data-et="Subjekt (DN)" data-en="Subject (DN)">Subject (DN)</dt><dd class="pem-v-subject"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Väljaandja" data-en="Issuer">Issuer</dt><dd class="pem-v-issuer"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Seerianumber" data-en="Serial number">Serial number</dt><dd class="pem-v-serial mono"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Kehtiv alates" data-en="Valid from">Valid from</dt><dd class="pem-v-from"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Kehtib kuni" data-en="Valid until">Valid until</dt><dd class="pem-v-until"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Avalik võti" data-en="Public key">Public key</dt><dd class="pem-v-key"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Allkirja algoritm" data-en="Signature algorithm">Signature algorithm</dt><dd class="pem-v-signature"></dd>
+            </div>
+            <div class="detail">
+              <dt data-et="Sõrmejälg (SHA-256)" data-en="Fingerprint (SHA-256)">Fingerprint (SHA-256)</dt><dd class="pem-v-fp mono"></dd>
+            </div>
+          </dl>
+          <div class="san-block">
+            <h4 class="pem-san-title"></h4>
+            <ul class="san-list pem-san-list"></ul>
+          </div>
+        </article>
+      </template>
+    </section>
+
+    <p class="privacy-note" data-et-html="&lt;strong&gt;Privaatsus:&lt;/strong&gt; dekodeerimine toimub täielikult sinu brauseris. Sertifikaati ei saadeta ühelegi serverile ega salvestata kuhugi." data-en-html="&lt;strong&gt;Privacy:&lt;/strong&gt; decoding happens entirely in your browser. The certificate is never sent to a server or stored anywhere."><strong>Privacy:</strong> decoding happens entirely in your browser. The certificate is never sent to a server or stored anywhere.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-brand">ssl<em>.ee</em></p>
+      <p data-et="Privaatsust austav SSL-sertifikaadi kontrollija." data-en="A privacy-respecting SSL certificate checker.">A privacy-respecting SSL certificate checker.</p>
+      <p class="footer-meta">© 2026 ssl.ee</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ---------- Tõlked ---------- */
+
+      var I18N = {
+        et: {
+          validDays: 'Kehtib veel {days}',
+          expired: 'Sertifikaat on aegunud',
+          errorEmpty: 'Sisesta vähemalt ühe sertifikaadi PEM.',
+          errorInvalid: 'PEM-i ei õnnestunud dekodeerida. Kontrolli, et tekst oleks terviklik X.509-sertifikaat.',
+          countOne: '1 sertifikaat',
+          countMany: '{n} sertifikaati',
+          certNumber: 'Sertifikaat {n}',
+          partial: '{okText} õnnestus dekodeerida; ülejäänud plokid olid vigased.',
+          noSan: 'Sertifikaadil puudub SAN-nimede loend.',
+          sans: 'Kaitstud domeenid ({n})'
+        },
+        en: {
+          validDays: 'Valid for another {days}',
+          expired: 'Certificate has expired',
+          errorEmpty: 'Enter at least one certificate PEM.',
+          errorInvalid: 'Could not decode the PEM. Check that the text is a complete X.509 certificate.',
+          countOne: '1 certificate',
+          countMany: '{n} certificates',
+          certNumber: 'Certificate {n}',
+          partial: '{okText} decoded; the remaining blocks were invalid.',
+          noSan: 'The certificate has no SAN names.',
+          sans: 'Covered hostnames ({n})'
+        }
+      };
+
+      var lang = 'et';
+      var lastDecode = null;   // { certs: [{parsed, fp}], total: arv }
+
+      function t(key, vars) {
+        var s = (I18N[lang] && I18N[lang][key]) != null ? I18N[lang][key] : I18N.et[key];
+        if (vars) for (var k in vars) s = s.split('{' + k + '}').join(String(vars[k]));
+        return s;
+      }
+
+      function daysText(n) {
+        if (lang === 'et') return n === 1 ? '1 päev' : n + ' päeva';
+        return n === 1 ? '1 day' : n + ' days';
+      }
+
+      function fmtDate(ms) {
+        try {
+          return new Intl.DateTimeFormat(lang === 'et' ? 'et-EE' : 'en-GB',
+            { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(ms));
+        } catch (e) { return new Date(ms).toISOString().slice(0, 10); }
+      }
+
+      var langEt = document.getElementById('lang-et');
+      var langEn = document.getElementById('lang-en');
+
+      function applyTranslations() {
+        document.querySelectorAll('[data-et]').forEach(function (el) {
+          var v = el.getAttribute('data-' + lang);
+          if (v !== null) el.textContent = v;
+        });
+        document.querySelectorAll('[data-et-html]').forEach(function (el) {
+          var v = el.getAttribute('data-' + lang + '-html');
+          if (v !== null) el.innerHTML = v;
+        });
+        ['aria-label', 'title', 'placeholder'].forEach(function (attr) {
+          document.querySelectorAll('[data-et-' + attr + ']').forEach(function (el) {
+            var v = el.getAttribute('data-' + lang + '-' + attr);
+            if (v !== null) el.setAttribute(attr, v);
+          });
+        });
+        if (lang === 'et') langEt.setAttribute('aria-current', 'page');
+        else langEt.removeAttribute('aria-current');
+        if (lang === 'en') langEn.setAttribute('aria-current', 'page');
+        else langEn.removeAttribute('aria-current');
+      }
+
+      function setLang(next) {
+        lang = next;
+        document.documentElement.lang = lang;
+        applyTranslations();
+        if (lastDecode) renderPemResults();
+      }
+
+      setLang(document.documentElement.lang === 'en' ? 'en' : 'et');
+
+      /* ---------- Hele/tume teema ---------- */
+
+      var THEME_KEY = 'ssl-ee-theme';
+      var themeToggle = document.getElementById('theme-toggle');
+
+      function detectTheme() {
+        try { return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; }
+        catch (e) { return 'dark'; }
+      }
+
+      function applyTheme(theme) {
+        document.documentElement.dataset.theme = theme;
+        if (themeToggle) themeToggle.setAttribute('aria-pressed', String(theme === 'light'));
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'light' ? '#f5f7fb' : '#04060c');
+        try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* privaatrežiim */ }
+      }
+
+      applyTheme(detectTheme());
+      if (themeToggle) themeToggle.addEventListener('click', function () {
+        applyTheme(detectTheme() === 'light' ? 'dark' : 'light');
+      });
+
+      /* ---------- Minimaalne ASN.1 / X.509 parser (ilma väliste teekideta) ---------- */
+
+      var OIDS = {
+        '1.2.840.113549.1.1.1': 'RSA',
+        '1.2.840.113549.1.1.5': 'SHA-1 with RSA',
+        '1.2.840.113549.1.1.11': 'SHA-256 with RSA',
+        '1.2.840.113549.1.1.12': 'SHA-384 with RSA',
+        '1.2.840.113549.1.1.13': 'SHA-512 with RSA',
+        '1.2.840.10045.4.3.2': 'ECDSA with SHA-256',
+        '1.2.840.10045.4.3.3': 'ECDSA with SHA-384',
+        '1.2.840.10045.4.3.4': 'ECDSA with SHA-512',
+        '1.3.101.112': 'Ed25519',
+        '1.3.101.113': 'Ed448',
+        '1.2.840.10045.2.1': 'EC public key',
+        '1.2.840.10045.3.1.7': 'P-256 (prime256v1)',
+        '1.3.132.0.34': 'P-384 (secp384r1)',
+        '1.3.132.0.35': 'P-521 (secp521r1)',
+        '2.5.4.3': 'CN', '2.5.4.4': 'SN', '2.5.4.5': 'serialNumber',
+        '2.5.4.6': 'C', '2.5.4.7': 'L', '2.5.4.8': 'ST',
+        '2.5.4.9': 'STREET', '2.5.4.10': 'O', '2.5.4.11': 'OU',
+        '2.5.4.97': 'organizationIdentifier'
+      };
+
+      function base64ToBytes(b64) {
+        try {
+          var s = atob(b64);
+          var out = new Uint8Array(s.length);
+          for (var i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+          return out;
+        } catch (e) { return null; }
+      }
+
+      function derReader(bytes) {
+        var pos = 0;
+        return {
+          readTLV: function () {
+            if (pos + 2 > bytes.length) return null;
+            var tag = bytes[pos++];
+            var len = bytes[pos++];
+            if (len & 0x80) {
+              var n = len & 0x7f;
+              if (n === 0 || n > 4 || pos + n > bytes.length) return null;
+              len = 0;
+              for (var i = 0; i < n; i++) len = (len << 8) | bytes[pos++];
+            }
+            if (!Number.isFinite(len) || len < 0 || pos + len > bytes.length) return null;
+            var value = bytes.subarray(pos, pos + len);
+            pos += len;
+            return { tag: tag, value: value };
+          }
+        };
+      }
+
+      function derOid(value) {
+        if (!value || !value.length) return '';
+        var nums = [], acc = 0;
+        for (var i = 0; i < value.length; i++) {
+          var b = value[i];
+          acc = acc * 128 + (b & 0x7f);
+          if ((b & 0x80) === 0) { nums.push(acc); acc = 0; }
+        }
+        var first = nums.length ? nums.shift() : 0;
+        var a = Math.min(Math.floor(first / 40), 2);
+        return [a, first - a * 40].concat(nums).join('.');
+      }
+
+      function derIntHex(value) {
+        var hex = '';
+        for (var i = 0; i < value.length; i++) hex += value[i].toString(16).padStart(2, '0');
+        return hex.replace(/^0+/, '') || '0';
+      }
+
+      function derText(tlv) {
+        if (!tlv) return '';
+        if (tlv.tag === 0x0c && typeof TextDecoder !== 'undefined') {
+          try { return new TextDecoder('utf-8').decode(tlv.value); } catch (e) { /* edasi */ }
+        }
+        var s = '';
+        for (var i = 0; i < tlv.value.length; i++) s += String.fromCharCode(tlv.value[i]);
+        return s;
+      }
+
+      function parseName(tlv) {
+        if (!tlv || tlv.tag !== 0x30) return '–';
+        var r = derReader(tlv.value), parts = [], set;
+        while ((set = r.readTLV())) {
+          if (set.tag !== 0x31) continue;
+          var sr = derReader(set.value), attr;
+          while ((attr = sr.readTLV())) {
+            if (attr.tag !== 0x30) continue;
+            var ar = derReader(attr.value);
+            var oidTLV = ar.readTLV(), valTLV = ar.readTLV();
+            if (!oidTLV || !valTLV) continue;
+            var oid = derOid(oidTLV.value);
+            parts.push((OIDS[oid] || oid) + '=' + derText(valTLV));
+          }
+        }
+        return parts.length ? parts.join(', ') : '–';
+      }
+
+      function parseAlgorithm(tlv) {
+        if (!tlv || tlv.tag !== 0x30) return null;
+        var r = derReader(tlv.value);
+        var oidTLV = r.readTLV();
+        if (!oidTLV) return null;
+        var oid = derOid(oidTLV.value);
+        return { oid: oid, name: OIDS[oid] || oid };
+      }
+
+      function bitLength(bytes) {
+        var i = 0;
+        while (i < bytes.length && bytes[i] === 0) i++;
+        if (i >= bytes.length) return 0;
+        return (bytes.length - i - 1) * 8 + (32 - Math.clz32(bytes[i]));
+      }
+
+      function derTime(tlv) {
+        if (!tlv) return null;
+        var s = derText(tlv).trim();
+        var m = /^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})?Z$/.exec(s);
+        if (tlv.tag === 0x17 && m) {
+          var yy = Number(m[1]);
+          var year = yy >= 50 ? 1900 + yy : 2000 + yy;
+          return Date.UTC(year, Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6] || 0));
+        }
+        m = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})?Z?$/.exec(s);
+        if (tlv.tag === 0x18 && m) {
+          return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6] || 0));
+        }
+        var ts = Date.parse(s);
+        return Number.isFinite(ts) ? ts : null;
+      }
+
+      function parseSan(extValue) {
+        if (!extValue || extValue.tag !== 0x04) return [];
+        var r = derReader(extValue.value);
+        var seq = r.readTLV();
+        if (!seq || seq.tag !== 0x30) return [];
+        var nr = derReader(seq.value), names = [], g;
+        while ((g = nr.readTLV())) {
+          if (g.tag === 0x82) names.push(derText(g));
+        }
+        return names;
+      }
+
+      function parseExtensions(tr) {
+        var tlv;
+        while ((tlv = tr.readTLV())) {
+          if (tlv.tag !== 0xa3) continue;
+          var er = derReader(tlv.value);
+          var seq = er.readTLV();
+          if (!seq || seq.tag !== 0x30) continue;
+          var sr = derReader(seq.value), ext;
+          while ((ext = sr.readTLV())) {
+            if (ext.tag !== 0x30) continue;
+            var fr = derReader(ext.value);
+            var oid = fr.readTLV();
+            var val = fr.readTLV();
+            if (val && val.tag === 0x01) val = fr.readTLV();
+            if (oid && derOid(oid.value) === '2.5.29.17') return parseSan(val);
+          }
+        }
+        return [];
+      }
+
+      function parseX509(b64) {
+        var bytes = base64ToBytes(b64);
+        if (!bytes) return null;
+        try {
+          var cert = derReader(bytes).readTLV();
+          if (!cert || cert.tag !== 0x30) return null;
+          var cr = derReader(cert.value);
+          var tbs = cr.readTLV(), sigOuter = cr.readTLV();
+          if (!tbs || tbs.tag !== 0x30 || !sigOuter) return null;
+
+          var tr = derReader(tbs.value);
+          var tlv = tr.readTLV();
+          if (tlv && tlv.tag === 0xa0) tlv = tr.readTLV();
+          var serialTLV = tlv;
+          var sigTbs = tr.readTLV();
+          var issuerTLV = tr.readTLV();
+          var validityTLV = tr.readTLV();
+          var subjectTLV = tr.readTLV();
+          var spkiTLV = tr.readTLV();
+
+          var notBefore = null, notAfter = null;
+          if (validityTLV && validityTLV.tag === 0x30) {
+            var vr = derReader(validityTLV.value);
+            notBefore = derTime(vr.readTLV());
+            notAfter = derTime(vr.readTLV());
+          }
+          var dnsNames = parseExtensions(tr);
+
+          var sig = parseAlgorithm(sigOuter) || parseAlgorithm(sigTbs);
+          var key = '–';
+          if (spkiTLV && spkiTLV.tag === 0x30) {
+            var sr = derReader(spkiTLV.value);
+            var algTLV = sr.readTLV(), bitTLV = sr.readTLV();
+            var alg = parseAlgorithm(algTLV);
+            if (alg) {
+              if (alg.oid === '1.2.840.113549.1.1.1') {
+                var bits = 0;
+                if (bitTLV && bitTLV.value.length > 1) {
+                  var kr = derReader(bitTLV.value.subarray(1));
+                  var seq = kr.readTLV();
+                  if (seq && seq.tag === 0x30) {
+                    var sr2 = derReader(seq.value);
+                    var mod = sr2.readTLV();
+                    if (mod && mod.tag === 0x02) bits = bitLength(mod.value);
+                  }
+                }
+                key = 'RSA' + (bits ? '-' + bits : '');
+              } else if (alg.oid === '1.2.840.10045.2.1') {
+                var ar = derReader(algTLV.value);
+                ar.readTLV();
+                var curveTLV = ar.readTLV();
+                var curve = curveTLV ? (OIDS[derOid(curveTLV.value)] || derOid(curveTLV.value)) : '';
+                key = 'ECDSA' + (curve ? ' · ' + curve : '');
+              } else {
+                key = alg.name;
+              }
+            }
+          }
+
+          return {
+            serial: serialTLV ? derIntHex(serialTLV.value) : '–',
+            issuerDn: parseName(issuerTLV),
+            subjectDn: parseName(subjectTLV),
+            signature: sig ? sig.name : '–',
+            key: key,
+            notBefore: notBefore,
+            notAfter: notAfter,
+            dnsNames: dnsNames
+          };
+        } catch (e) { return null; }
+      }
+
+      /* ---------- Dekodeerija ---------- */
+
+      var els = {
+        input: document.getElementById('pem-input'),
+        decodeBtn: document.getElementById('pem-decode-btn'),
+        clearBtn: document.getElementById('pem-clear-btn'),
+        status: document.getElementById('pem-status'),
+        result: document.getElementById('pem-result'),
+        certs: document.getElementById('pem-certs'),
+        count: document.getElementById('pem-count'),
+        note: document.getElementById('pem-note'),
+        template: document.getElementById('pem-cert-template')
+      };
+
+      // Tagastab kõik sisestatud sertifikaadid: PEM-plokid või tühjade ridadega
+      // eraldatud paljad base64-plokid. Üksik base64 töötab endiselt ka.
+      function extractCertB64s(input) {
+        var s = String(input == null ? '' : input).trim();
+        if (!s) return { list: [], total: 0 };
+        var clean = function (block) {
+          var b64 = String(block)
+            .replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----/g, '')
+            .replace(/\s+/g, '');
+          return (/^[A-Za-z0-9+/]+={0,2}$/.test(b64) && b64.length >= 100) ? b64 : null;
+        };
+        var blocks = s.match(/-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/g) || [];
+        var candidates, total;
+        if (blocks.length) {
+          candidates = blocks;
+          total = blocks.length;
+        } else {
+          var chunks = s.split(/\n\s*\n/).map(function (x) { return x.trim(); }).filter(Boolean);
+          candidates = chunks.length > 1 ? chunks : [s];
+          total = candidates.length;
+        }
+        var list = candidates.map(clean).filter(Boolean);
+        return { list: list, total: total };
+      }
+
+      function sha256Hex(bytes) {
+        if (!bytes || !globalThis.crypto || !crypto.subtle) return Promise.resolve(null);
+        return crypto.subtle.digest('SHA-256', bytes).then(function (buf) {
+          return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+            return b.toString(16).padStart(2, '0');
+          }).join('');
+        }).catch(function () { return null; });
+      }
+
+      function showPemStatus(msg, kind) {
+        els.status.textContent = msg || '';
+        els.status.className = 'pem-status' + (kind ? ' ' + kind : '');
+        els.status.hidden = !msg;
+      }
+
+      function failDecode(key) {
+        els.result.hidden = true;
+        els.certs.textContent = '';
+        els.count.textContent = '';
+        els.note.hidden = true;
+        els.note.textContent = '';
+        lastDecode = null;
+        showPemStatus(t(key), 'bad');
+      }
+
+      function certCountText(n) {
+        return n === 1 ? t('countOne') : t('countMany', { n: n });
+      }
+
+      function renderPemResults() {
+        var certs = lastDecode.certs;
+        els.certs.textContent = '';
+        els.count.textContent = certCountText(certs.length);
+
+        certs.forEach(function (item, i) {
+          var parsed = item.parsed, fp = item.fp;
+          var card = els.template.content.firstElementChild.cloneNode(true);
+          var q = function (sel) { return card.querySelector(sel); };
+
+          q('.pem-cert-title').textContent = t('certNumber', { n: i + 1 });
+          q('.pem-v-subject').textContent = parsed.subjectDn || '–';
+          q('.pem-v-issuer').textContent = parsed.issuerDn || '–';
+          q('.pem-v-serial').textContent = parsed.serial || '–';
+          q('.pem-v-from').textContent = Number.isFinite(parsed.notBefore) ? fmtDate(parsed.notBefore) : '–';
+          q('.pem-v-until').textContent = Number.isFinite(parsed.notAfter) ? fmtDate(parsed.notAfter) : '–';
+          q('.pem-v-key').textContent = parsed.key || '–';
+          q('.pem-v-signature').textContent = parsed.signature || '–';
+          q('.pem-v-fp').textContent = fp ? fp.toUpperCase().replace(/(.{2})(?=.)/g, '$1:') : '–';
+
+          var expired = Number.isFinite(parsed.notAfter) && parsed.notAfter < Date.now();
+          var days = Number.isFinite(parsed.notAfter)
+            ? daysText(Math.max(Math.ceil((parsed.notAfter - Date.now()) / 864e5), 0)) : '';
+          var chip = q('.pem-chip');
+          chip.textContent = expired ? t('expired') : (days ? t('validDays', { days: days }) : '–');
+          chip.classList.toggle('expired', expired);
+
+          var names = Array.isArray(parsed.dnsNames) ? parsed.dnsNames : [];
+          q('.pem-san-title').textContent = names.length ? t('sans', { n: names.length }) : t('noSan');
+          var ul = q('.pem-san-list');
+          names.forEach(function (name) {
+            var li = document.createElement('li');
+            li.textContent = name;
+            ul.appendChild(li);
+          });
+
+          els.certs.appendChild(card);
+        });
+
+        applyTranslations(); // ka kloonitud kaartide <dt>-sildid
+
+        var skipped = lastDecode.total - certs.length;
+        els.note.hidden = skipped < 1;
+        els.note.textContent = skipped > 0
+          ? t('partial', { okText: certCountText(certs.length) }) : '';
+        els.result.hidden = false;
+      }
+
+      function decodePem() {
+        var raw = els.input.value;
+        if (!String(raw).trim()) { failDecode('errorEmpty'); return; }
+        var extracted = extractCertB64s(raw);
+        if (!extracted.list.length) { failDecode('errorInvalid'); return; }
+
+        var jobs = extracted.list.map(function (b64) {
+          var bytes = base64ToBytes(b64);
+          var parsed = bytes ? parseX509(b64) : null;
+          if (!parsed) return Promise.resolve(null);
+          return sha256Hex(bytes).then(function (fp) { return { parsed: parsed, fp: fp }; });
+        });
+
+        Promise.all(jobs).then(function (results) {
+          var ok = results.filter(Boolean);
+          if (!ok.length) { failDecode('errorInvalid'); return; }
+          lastDecode = { certs: ok, total: extracted.total };
+          renderPemResults();
+          showPemStatus('', '');
+        });
+      }
+
+      function clearPem() {
+        els.input.value = '';
+        els.result.hidden = true;
+        els.certs.textContent = '';
+        els.count.textContent = '';
+        els.note.hidden = true;
+        els.note.textContent = '';
+        lastDecode = null;
+        showPemStatus('', '');
+      }
+
+      els.decodeBtn.addEventListener('click', decodePem);
+      els.clearBtn.addEventListener('click', clearPem);
+      els.input.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          decodePem();
+        }
+      });
+    })();
+  </script>
+
+
+</body></html>

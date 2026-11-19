@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ssl.ee — SSL certificate checker</title>
+  <meta name="description" content="Check in one click whether a domain's SSL certificate is valid: expiry, issuer and covered hostnames. Free and without registration.">
+  <link rel="canonical" href="https://ssl.ee/en/">
+  <link rel="alternate" hreflang="et" href="https://ssl.ee/">
+  <link rel="alternate" hreflang="en" href="https://ssl.ee/en/">
+  <link rel="alternate" hreflang="x-default" href="https://ssl.ee/">
+  <meta name="theme-color" content="#04060c">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <meta property="og:title" content="ssl.ee — SSL certificate checker">
+  <meta property="og:description" content="Is your SSL certificate still valid? Enter a domain and get an answer within seconds.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ssl.ee/en/">
+  <meta property="og:site_name" content="ssl.ee">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="https://ssl.ee/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ssl.ee — SSL certificate checker">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ssl.ee — SSL certificate checker">
+  <meta name="twitter:description" content="Is your SSL certificate still valid? Enter a domain and get an answer within seconds.">
+  <meta name="twitter:image" content="https://ssl.ee/og-image.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "ssl.ee — SSL certificate checker",
+    "url": "https://ssl.ee/en/",
+    "description": "Check in one click whether a domain's SSL certificate is valid: expiry, issuer and covered hostnames.",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "Any",
+    "inLanguage": "en",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
+  }
+  </script>
+  <link rel="stylesheet" href="../styles.css">
+  <script>
+    // Apply the saved theme before CSS to avoid a light flash
+    try { if (localStorage.getItem('ssl-ee-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../" aria-label="ssl.ee — home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#04241a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+        </span>
+        <span class="brand-name">ssl<em>.ee</em></span>
+      </a>
+      <div class="header-nav">
+        <a class="api-link" href="api-docs.html" data-i18n="nav.api" data-i18n-aria-label="nav.apiAria" aria-label="API documentation">API</a>
+        <a class="api-link" href="pem.html" data-i18n="nav.pem" data-i18n-aria-label="nav.pemAria" aria-label="PEM decoder">PEM</a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch between light and dark theme" title="Switch between light and dark theme" data-i18n-aria-label="nav.theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"></path></svg>
+        </button>
+        <div class="lang-switch" role="group" aria-label="Language / Keele valik">
+          <a id="lang-et" href="../" hreflang="et" lang="et">ET</a>
+          <a id="lang-en" href="./" hreflang="en" lang="en" aria-current="page">EN</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <p class="hero-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 4.4-3.4 8.5-8 9-4.6-.5-8-4.6-8-9V7l8-4z"></path><path d="M9 12l2 2 4-4"></path></svg>
+          <span data-i18n="hero.badge">Free tool · data from Certificate Transparency logs</span>
+        </p>
+        <h1 data-i18n-html="hero.title">Is your domain's <span class="grad">SSL certificate</span> still valid?</h1>
+        <p class="hero-sub" data-i18n="hero.subtitle">Enter a domain name and instantly see how long the certificate is valid, who issued it, and which hostnames it protects.</p>
+
+        <form id="check-form" class="check-form" novalidate="">
+          <span class="input-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+          </span>
+          <input id="domain-input" class="domain-input" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="yourdomain.com" aria-label="Domain to check" data-i18n-aria-label="form.ariaLabel" data-i18n-placeholder="form.placeholder">
+          <button id="check-btn" class="check-btn" type="submit">
+            <span class="btn-label" data-i18n="form.button">Check</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13"></path><path d="M13 6l6 6-6 6"></path></svg>
+          </button>
+        </form>
+
+        <button type="button" id="compare-btn" class="compare-btn" data-i18n="form.compare">+ Compare apex and www</button>
+
+        <div class="examples">
+          <span data-i18n="hero.try">Try:</span>
+          <button type="button" class="chip" data-domain="google.com">google.com</button>
+          <button type="button" class="chip" data-domain="wikipedia.org">wikipedia.org</button>
+          <button type="button" class="chip" data-domain="delfi.ee">delfi.ee</button>
+        </div>
+        <p class="privacy-note" data-i18n="hero.privacy">All queries run directly in your browser – ssl.ee never stores the domains you check.</p>
+      </div>
+    </section>
+
+    <section class="checker container" id="checker" aria-live="polite">
+      <h2 class="visually-hidden">SSL certificate check result</h2>
+      <div id="scan-state" class="scan-state" hidden="">
+        <span class="spinner" aria-hidden="true"></span>
+        <div class="scan-text">
+          <strong id="scan-host"></strong>
+          <p id="scan-msg"></p>
+        </div>
+      </div>
+
+      <div id="error-state" class="error-state" hidden="">
+        <div class="error-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16.5v.01"></path></svg>
+        </div>
+        <div>
+          <h2 data-i18n="error.title">Check failed</h2>
+          <p id="error-msg"></p>
+          <p class="error-links" id="error-links" hidden=""></p>
+        </div>
+      </div>
+
+      <article id="result-card" class="result-card" hidden="">
+        <header class="result-head">
+          <span class="status-icon" id="status-icon" aria-hidden="true"></span>
+          <div class="status-text">
+            <h2 id="status-title"></h2>
+            <p id="status-domain" class="domain"></p>
+          </div>
+          <span class="status-chip" id="status-chip"></span>
+        </header>
+        <p class="advice" id="advice"></p>
+
+        <section id="findings" class="findings" hidden="">
+          <div class="findings-head">
+            <h3 data-i18n="f.title">Check findings</h3>
+            <span id="findings-summary" class="findings-summary"></span>
+          </div>
+          <ul id="findings-list" class="findings-list"></ul>
+          <details id="findings-more" class="findings-more" hidden="">
+            <summary id="findings-more-toggle"></summary>
+            <ul id="findings-rest" class="findings-list"></ul>
+          </details>
+        </section>
+
+        <div class="result-body">
+          <div class="gauge-wrap">
+            <div class="gauge">
+              <svg viewBox="0 0 148 148" aria-hidden="true">
+                <circle class="gauge-track" cx="74" cy="74" r="56"></circle>
+                <circle class="gauge-progress" id="gauge-progress" cx="74" cy="74" r="56"></circle>
+              </svg>
+              <div class="gauge-center">
+                <span class="gauge-number" id="gauge-number"></span>
+                <span class="gauge-label" id="gauge-label"></span>
+              </div>
+            </div>
+            <p class="gauge-caption" id="gauge-caption"></p>
+          </div>
+
+          <dl class="details">
+            <div class="detail">
+              <dt data-i18n="detail.issuer">Issuer</dt>
+              <dd><span id="detail-issuer"></span><small class="field-hint" data-i18n="hint.issuer">The authority (CA) that issued and signed the certificate.</small></dd>
+            </div>
+            <div class="detail">
+              <dt data-i18n="detail.validFrom">Valid from</dt>
+              <dd><span id="detail-from"></span><small class="field-hint" data-i18n="hint.validFrom">The certificate is valid from this date onward.</small></dd>
+            </div>
+            <div class="detail">
+              <dt data-i18n="detail.validUntil">Valid until</dt>
+              <dd><span id="detail-until"></span><small class="field-hint" data-i18n="hint.validUntil">After this date the browser shows a warning.</small></dd>
+            </div>
+            <div class="detail">
+              <dt data-i18n="detail.fingerprint">Fingerprint (SHA-256)</dt>
+              <dd class="mono"><span id="detail-fp"></span><small class="field-hint" data-i18n="hint.fingerprint">Unique identifier used to identify this exact certificate.</small></dd>
+            </div>
+          </dl>
+        </div>
+
+        <section id="cert-details" class="cert-details" hidden="">
+          <h3 data-i18n="certdetails.title">Certificate technical details</h3>
+          <dl class="details cert-details-grid">
+            <div class="detail"><dt data-i18n="certdetails.serial">Serial number</dt><dd id="cert-serial" class="mono"></dd></div>
+            <div class="detail"><dt data-i18n="certdetails.subject">Subject (DN)</dt><dd id="cert-subject"></dd></div>
+            <div class="detail"><dt data-i18n="certdetails.algorithm">Signature algorithm</dt><dd id="cert-signature"></dd></div>
+            <div class="detail"><dt data-i18n="certdetails.key">Public key</dt><dd id="cert-key"></dd></div>
+          </dl>
+          <details class="pem-block">
+            <summary data-i18n="certdetails.pemToggle">Show certificate PEM and certificate chain</summary>
+            <div class="pem-head">
+              <span id="cert-kind" class="pem-kind"></span>
+              <div class="pem-actions">
+                <button type="button" class="copy-btn" id="copy-pem" data-i18n="certdetails.copy">Copy PEM</button>
+                <button type="button" class="copy-btn" id="copy-chain" data-i18n="certdetails.copyChain">Copy full chain</button>
+                <button type="button" class="copy-btn dl-btn" id="download-pem" data-i18n="certdetails.downloadPem">Download PEM</button>
+                <button type="button" class="copy-btn dl-btn" id="download-chain" data-i18n="certdetails.downloadChain">Download full chain</button>
+                <button type="button" class="copy-btn cmd-btn" id="copy-curl" data-i18n="cmd.curl">Copy curl command</button>
+                <button type="button" class="copy-btn cmd-btn" id="copy-openssl" data-i18n="cmd.openssl">Copy OpenSSL command</button>
+              </div>
+            </div>
+            <p id="chain-status" class="chain-status" hidden=""></p>
+            <div class="pem-columns">
+              <div class="pem-col">
+                <h4 class="pem-col-title" data-i18n="certdetails.pemColumn">Certificate PEM</h4>
+                <pre id="cert-pem" class="pem-code"></pre>
+              </div>
+              <div class="pem-col">
+                <h4 class="pem-col-title" data-i18n="certdetails.chainColumn">Full chain (PEM)</h4>
+                <pre id="cert-chain-pem" class="pem-code"></pre>
+                <p id="chain-pem-note" class="chain-pem-note" hidden=""></p>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <div id="chain-check" class="chain-check" hidden="">
+          <span class="chain-check-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.4-3.4 8.5-8 9-4.6-.5-8-4.6-8-9V7l8-4z"></path><path d="M9 12l2 2 4-4"></path></svg>
+          </span>
+          <div class="chain-check-body">
+            <h3 id="chain-check-title"></h3>
+            <p id="chain-check-text"></p>
+            <p id="chain-check-fps" class="chain-check-fps" hidden="">
+              <span id="chain-check-ct"></span>
+              <span id="chain-check-chain"></span>
+            </p>
+          </div>
+        </div>
+
+        <section id="chain-tree" class="chain-tree-panel" hidden="">
+          <div class="chain-tree-head">
+            <h3 data-i18n="chainTree.title">Certificate chain tree</h3>
+            <span id="chain-tree-meta" class="chain-tree-meta"></span>
+          </div>
+          <ol id="chain-tree-list" class="chain-tree-list"></ol>
+          <p id="chain-tree-note" class="chain-tree-note" hidden=""></p>
+        </section>
+
+        <div class="san-block">
+          <h3 id="san-title"></h3>
+          <ul class="san-list" id="san-list"></ul>
+          <button type="button" class="san-toggle" id="san-toggle" hidden=""></button>
+        </div>
+
+        <section id="timeline" class="timeline" hidden="">
+          <h3 data-i18n="timeline.title">Issuance history</h3>
+          <p id="timeline-summary" class="timeline-summary"></p>
+          <div id="timeline-track" class="timeline-track"></div>
+          <p id="timeline-note" class="timeline-note" hidden=""></p>
+        </section>
+
+        <div class="badges" id="badges" hidden=""></div>
+
+        <div class="obs" id="obs" hidden="">
+          <div class="obs-head">
+            <h3 data-i18n="obs.title">Security headers score</h3>
+            <span class="obs-provider">MDN HTTP Observatory</span>
+          </div>
+          <div class="obs-body">
+            <span class="obs-grade" id="obs-grade">A+</span>
+            <div class="obs-meta">
+              <span id="obs-score"></span>
+              <a id="obs-link" target="_blank" rel="noopener"></a>
+            </div>
+          </div>
+        </div>
+
+        <section id="dns-panel" class="dns-panel" hidden="">
+          <div class="dns-head">
+            <h3 data-i18n="dns.title">CAA and DNSSEC</h3>
+            <span class="dns-provider" data-i18n="dns.provider">Cloudflare DNS-over-HTTPS</span>
+          </div>
+          <div class="dns-body">
+            <div class="dns-item">
+              <span class="dns-label" data-i18n="dns.caa">Allowed certificate authorities (CAA)</span>
+              <div id="dns-caa" class="dns-value"></div>
+            </div>
+            <div class="dns-item">
+              <span class="dns-label" data-i18n="dns.dnssec">DNSSEC</span>
+              <div id="dns-dnssec" class="dns-value"></div>
+            </div>
+          </div>
+          <p id="dns-note" class="dns-note" hidden=""></p>
+        </section>
+
+        <footer class="result-foot">
+          <div class="share-row">
+            <button type="button" class="share-btn" id="share-link" data-i18n="share.copyLink">Copy share link</button>
+            <button type="button" class="share-btn" id="copy-result" data-i18n="share.copyResult">Copy result</button>
+            <button type="button" class="share-btn" id="export-report" data-i18n="report.html">Download report (HTML)</button>
+            <button type="button" class="share-btn" id="export-json" data-i18n="report.json">Download report (JSON)</button>
+            <button type="button" class="share-btn" id="share-image" data-i18n="report.image">Download result image (PNG)</button>
+            <button type="button" class="share-btn reminder-btn" id="add-reminder" data-i18n="reminder.button">Add an expiry reminder to your calendar</button>
+            <span class="share-status" id="share-status" hidden=""></span>
+          </div>
+          <div class="foot-meta">
+            <p class="source-note" id="source-note"></p>
+            <div class="external-links">
+              <a id="link-ssllabs" target="_blank" rel="noopener"></a>
+              <a id="link-crtsh" target="_blank" rel="noopener"></a>
+            </div>
+          </div>
+        </footer>
+      </article>
+
+      <section id="compare-panel" class="compare-panel" hidden="">
+        <header class="compare-head">
+          <div>
+            <h2 id="compare-title"></h2>
+            <p id="compare-subtitle" class="compare-subtitle"></p>
+          </div>
+          <span id="compare-summary" class="compare-summary"></span>
+        </header>
+        <div id="compare-cards" class="compare-cards"></div>
+        <p id="compare-note" class="compare-note"></p>
+      </section>
+
+      <div id="history" class="history" hidden="">
+        <div class="history-head">
+          <h3 data-i18n="history.title">Recent checks</h3>
+          <button type="button" id="history-clear" class="history-clear" data-i18n="history.clear">Clear</button>
+        </div>
+        <div class="history-list" id="history-list"></div>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="container">
+        <h2 data-i18n="features.title">Why check your certificate regularly?</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path></svg>
+            </span>
+            <h3 data-i18n="feat1.title">Visitor trust</h3>
+            <p data-i18n="feat1.text">Browsers show a warning when opening a site with an expired certificate, and visitors leave immediately – taking their trust with them.</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+            </span>
+            <h3 data-i18n="feat2.title">Search engines</h3>
+            <p data-i18n="feat2.text">HTTPS is a Google ranking factor. A broken certificate drops your site well down the search results, or out of them entirely.</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+            </span>
+            <h3 data-i18n="feat3.title">Encrypted traffic</h3>
+            <p data-i18n="feat3.text">SSL/TLS encrypts the connection between visitor and server. An expired certificate leaves the data open to interception and tampering.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="learn" id="learn">
+      <div class="container">
+        <h2 data-i18n="learn.title">Renewing a certificate and understanding the result</h2>
+        <div class="learn-grid">
+          <div class="learn-card">
+            <h3 data-i18n="learn.fieldsTitle">What the result means</h3>
+            <dl class="glossary">
+              <div><dt data-i18n="learn.glossIssuer">Issuer</dt><dd data-i18n="learn.glossIssuerText">The certificate authority (CA) that issued and digitally signed the certificate – for example Let's Encrypt or Google Trust Services.</dd></div>
+              <div><dt data-i18n="learn.glossValid">Validity</dt><dd data-i18n="learn.glossValidText">A certificate is valid only during the stated period. After the end date the browser displays a warning page.</dd></div>
+              <div><dt data-i18n="learn.glossFp">Fingerprint</dt><dd data-i18n="learn.glossFpText">A unique SHA-256 identifier that lets you verify the server is serving exactly this certificate.</dd></div>
+              <div><dt data-i18n="learn.glossSan">Covered hostnames</dt><dd data-i18n="learn.glossSanText">All addresses the certificate covers (SAN). If your address is not listed, the browser will show a warning.</dd></div>
+            </dl>
+          </div>
+          <div class="learn-card">
+            <h3 data-i18n="learn.renewTitle">How to renew a certificate</h3>
+            <p class="learn-intro" data-i18n="learn.renewIntro">In most cases a free Let's Encrypt certificate and Certbot are enough. Renew at least 30 days before expiry.</p>
+            <ol class="steps">
+              <li data-i18n-html="learn.step1">Install Certbot: <code>sudo apt install certbot python3-certbot-nginx</code> (Nginx) or <code>python3-certbot-apache</code> (Apache).</li>
+              <li data-i18n-html="learn.step2">Obtain and install the certificate: <code>sudo certbot --nginx -d example.com</code> (or <code>--apache</code>).</li>
+              <li data-i18n-html="learn.step3">Test automatic renewal: <code>sudo certbot renew --dry-run</code>. Certbot sets up the scheduled task for you.</li>
+            </ol>
+            <p class="learn-tip" data-i18n="learn.tip">Tip: if you use Cloudflare, you can manage SSL from its dashboard instead – no Certbot needed on the server.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq" id="faq">
+      <div class="container">
+        <h2 data-i18n="faq.title">Frequently asked questions</h2>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary data-i18n="faq1.q">What does this site do?</summary>
+            <p data-i18n="faq1.a">ssl.ee checks a domain's SSL/TLS certificate validity: how long it is valid, who issued it, and which hostnames it protects. Just type a domain name – you get an answer within seconds.</p>
+          </details>
+          <details class="faq-item">
+            <summary data-i18n="faq2.q">Where does the data come from?</summary>
+            <p data-i18n="faq2.a">Certificate data is read from Certificate Transparency logs via Cert Spotter (with crt.sh as backup); the HTTP security-header score comes from MDN HTTP Observatory, the full chain and CT/chain comparison from Trustico SSL Tools, and CAA/DNSSEC from Cloudflare DNS-over-HTTPS. All requests run directly in your browser.</p>
+          </details>
+          <details class="faq-item">
+            <summary data-i18n="faq3.q">Why might the information differ from reality?</summary>
+            <p data-i18n="faq3.a">We show the most recently issued certificate from the CT logs. A server or CDN may sometimes serve a different (e.g. older) certificate – for a full analysis (protocols and ciphers included) use the SSL Labs link below.</p>
+          </details>
+          <details class="faq-item">
+            <summary data-i18n="faq4.q">What does "expiring soon" mean?</summary>
+            <p data-i18n="faq4.a">Less than 30 days remain on the certificate. We recommend renewing right away so the site doesn't go dark because a renewal was forgotten.</p>
+          </details>
+          <details class="faq-item">
+            <summary data-i18n="faq5.q">Is it free to use?</summary>
+            <p data-i18n="faq5.a">Yes. ssl.ee is free, requires no sign-up and collects no personal data. The upstream data sources may apply their own rate limits.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-brand">ssl<em>.ee</em></p>
+      <p class="footer-tagline" data-i18n="footer.tagline">A privacy-respecting SSL certificate checker – every query runs in your browser.</p>
+      <nav class="footer-nav" aria-label="Contents">
+        <a href="#checker" data-i18n="footer.navCheck">Check a certificate</a>
+        <a href="#learn" data-i18n="footer.navLearn">Certificate renewal</a>
+        <a href="#faq" data-i18n="footer.navFaq">Frequently asked questions</a>
+        <a href="api-docs.html" data-i18n="footer.navApi">API documentation</a>
+      </nav>
+      <p class="footer-meta"><span data-i18n="footer.sources">Data sources: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico · Cloudflare DNS</span> · <span id="footer-year">© 2026 ssl.ee</span></p>
+    </div>
+  </footer>
+
+  <script src="../app.js"></script>
+
+
+</body></html>
