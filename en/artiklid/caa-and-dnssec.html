@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CAA and DNSSEC explained — ssl.ee</title>
+  <meta name="description" content="What CAA records mean, how they prevent a wrong certificate from being issued, and what DNSSEC adds. Example records, check commands and common failures.">
+  <link rel="canonical" href="https://ssl.ee/en/artiklid/caa-and-dnssec.html">
+  <link rel="alternate" hreflang="et" href="https://ssl.ee/artiklid/caa-ja-dnssec.html">
+  <link rel="alternate" hreflang="en" href="https://ssl.ee/en/artiklid/caa-and-dnssec.html">
+  <link rel="alternate" hreflang="x-default" href="https://ssl.ee/artiklid/caa-ja-dnssec.html">
+  <meta name="theme-color" content="#04060c">
+  <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+  <meta property="og:title" content="CAA and DNSSEC explained">
+  <meta property="og:description" content="How CAA records restrict which certificate authorities may issue for your domain, and what DNSSEC adds to DNS answers.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://ssl.ee/en/artiklid/caa-and-dnssec.html">
+  <meta property="og:site_name" content="ssl.ee">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:locale:alternate" content="et_EE">
+  <meta property="og:image" content="https://ssl.ee/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ssl.ee — SSL certificate checker">
+  <meta property="article:published_time" content="2026-11-19">
+  <meta property="article:modified_time" content="2026-11-19">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CAA and DNSSEC explained">
+  <meta name="twitter:description" content="CAA records, DNSSEC and how they work together — with examples and check commands.">
+  <meta name="twitter:image" content="https://ssl.ee/og-image.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "CAA and DNSSEC explained",
+    "description": "What CAA records mean, how they prevent a wrong certificate from being issued, and what DNSSEC adds. Example records, check commands and common failures.",
+    "inLanguage": "en",
+    "datePublished": "2026-11-19",
+    "dateModified": "2026-11-19",
+    "author": { "@type": "Organization", "name": "ssl.ee", "url": "https://ssl.ee/" },
+    "publisher": { "@type": "Organization", "name": "ssl.ee", "url": "https://ssl.ee/" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://ssl.ee/en/artiklid/caa-and-dnssec.html" },
+    "image": "https://ssl.ee/og-image.png"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "ssl.ee", "item": "https://ssl.ee/en/" },
+      { "@type": "ListItem", "position": 2, "name": "CAA and DNSSEC explained", "item": "https://ssl.ee/en/artiklid/caa-and-dnssec.html" }
+    ]
+  }
+  </script>
+  <link rel="stylesheet" href="../../styles.css">
+  <script>
+    try { if (localStorage.getItem('ssl-ee-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../../" aria-label="ssl.ee — home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#04241a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        </span>
+        <span class="brand-name">ssl<em>.ee</em></span>
+      </a>
+      <div class="header-nav">
+        <a class="api-link" href="../">← Checker</a>
+        <a class="api-link" href="../pem.html">PEM decoder</a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false"
+                aria-label="Switch between light and dark theme" title="Switch between light and dark theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg>
+        </button>
+        <div class="lang-switch" role="group" aria-label="Language / Keele valik">
+          <a id="lang-et" href="../../artiklid/caa-ja-dnssec.html" hreflang="et" lang="et">ET</a>
+          <a id="lang-en" href="caa-and-dnssec.html" hreflang="en" lang="en" aria-current="page">EN</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <article class="article">
+      <header class="article-head">
+        <p class="article-kicker">Explainer · DNS and security</p>
+        <h1>CAA and DNSSEC explained</h1>
+        <p class="article-lead">CAA tells certificate authorities who is allowed to issue a certificate for your domain. DNSSEC makes sure those DNS answers cannot be forged along the way. Together they form two fairly simple records that provide quiet but effective protection.</p>
+        <p class="article-meta"><span>Published <time datetime="2026-11-19">19 November 2026</time></span><span>·</span><span>About 8 minutes read</span></p>
+      </header>
+
+      <nav class="article-toc" aria-label="Contents">
+        <strong>Contents</strong>
+        <ol>
+          <li><a href="#caa">What CAA is</a></li>
+          <li><a href="#syntax">CAA syntax and tags</a></li>
+          <li><a href="#setup">Setting up CAA</a></li>
+          <li><a href="#check">Checking CAA</a></li>
+          <li><a href="#dnssec">What DNSSEC is</a></li>
+          <li><a href="#dnssec-setup">Setting up DNSSEC</a></li>
+          <li><a href="#together">How they work together</a></li>
+          <li><a href="#errors">Common failures</a></li>
+          <li><a href="#faq">Frequently asked questions</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="caa">What CAA is</h2>
+      <p>CAA (<em>Certificate Authority Authorization</em>) is a DNS record that states <strong>which certificate authorities may issue a certificate for this domain</strong>. The rule is defined in RFC 8659 and is honoured by every major CA before issuing a certificate.</p>
+      <p>Without a CAA record, any trusted CA could in theory issue a certificate for any domain — proving control of the domain would be enough. CAA does not replace that check; it adds a <strong>second, independent restriction</strong>: even if someone manages to fake the challenge, the wrong CA is still not allowed to issue.</p>
+      <div class="article-note">
+        <p><strong>Real-world benefit:</strong> if your CAA allows only Let's Encrypt, a compromised or mistaken CA cannot issue for your domain. That matters most for organisations whose domains are attractive targets.</p>
+      </div>
+
+      <h2 id="syntax">CAA syntax and tags</h2>
+      <pre><code>example.com.  3600  IN  CAA  0  issue  "letsencrypt.org"</code></pre>
+      <p>The fields from left to right: name, TTL, class, type, <strong>flags</strong>, <strong>tag</strong> and <strong>value</strong>. Flag <code>0</code> means a normal record; flag <code>128</code> marks a “critical” record the CA must understand — with an unknown critical tag, issuance must stop.</p>
+      <table>
+        <thead><tr><th>Tag</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>issue</code></td><td>Allows the named CA to issue ordinary certificates.</td></tr>
+          <tr><td><code>issuewild</code></td><td>Allows the named CA to issue wildcard certificates (<code>*.example.com</code>). If absent, <code>issue</code> also governs wildcards.</td></tr>
+          <tr><td><code>iodef</code></td><td>An email address or URL where a CA can report a forbidden issuance attempt.</td></tr>
+        </tbody>
+      </table>
+      <p>Example with two CAs and reporting:</p>
+      <pre><code>example.com.  3600  IN  CAA  0  issue     "letsencrypt.org"
+example.com.  3600  IN  CAA  0  issue     "digicert.com"
+example.com.  3600  IN  CAA  0  issuewild  "letsencrypt.org"
+example.com.  3600  IN  CAA  0  iodef     "mailto:admin@example.com"</code></pre>
+      <h3>How CAA is looked up</h3>
+      <p>A CA does not look only at the exact name. The query walks up the domain tree: <code>www.example.com</code> → <code>example.com</code> → <code>com</code> → root. <strong>The first set of CAA records found is authoritative</strong> — records from different levels are not merged.</p>
+      <p>Two practical consequences follow:</p>
+      <ul>
+        <li>A CAA record on the apex (<code>example.com</code>) automatically applies to subdomains, as long as they have no CAA of their own.</li>
+        <li>If a subdomain has its own CAA, it <strong>replaces</strong> the apex record rather than adding to it.</li>
+      </ul>
+
+      <h2 id="setup">Setting up CAA</h2>
+      <p>Most DNS panels treat CAA as an ordinary record type. In Cloudflare:</p>
+      <ol>
+        <li>Open <em>DNS → Records</em> and click <em>Add record</em>.</li>
+        <li>Type: <strong>CAA</strong>. Name: <code>@</code> (apex) or a specific subdomain.</li>
+        <li>Tag: <code>issue</code>. CA domain: <code>letsencrypt.org</code>. Flags: <code>0</code>.</li>
+        <li>If you use wildcard certificates, add a second record with the tag <code>issuewild</code>.</li>
+      </ol>
+      <div class="article-note warn">
+        <p><strong>Before you add it, check which CA actually serves you.</strong> If the CAA record does not allow your current CA, the <em>next renewal will fail</em>. Find the issuer name in the <a href="../#checker">ssl.ee result</a> or in the certificate details.</p>
+      </div>
+      <p>If you deliberately want to forbid all issuance, use an empty value with a semicolon:</p>
+      <pre><code>example.com.  3600  IN  CAA  0  issue  ";"</code></pre>
+      <p>That is meant for domains that will never be a web server. Do not do it for a normal site.</p>
+
+      <h2 id="check">Checking CAA</h2>
+      <pre><code>dig CAA example.com +short
+dig CAA www.example.com +short</code></pre>
+      <p>An empty answer means there is no CAA. If you see a record, verify that the <code>issue</code> value matches your CA domain (for example <code>letsencrypt.org</code>, not <code>letsencrypt</code> or a URL).</p>
+      <p>The ssl.ee check displays CAA records and the DNSSEC status in a separate panel under the result. The data comes from Cloudflare's DNS-over-HTTPS service, so you do not need the command line.</p>
+
+      <h2 id="dnssec">What DNSSEC is</h2>
+      <p>DNSSEC adds <strong>cryptographic signatures</strong> to DNS answers. Without it a client has no way to tell a genuine answer from a forged one — DNS itself is historically completely untrusted. DNSSEC does not encrypt traffic or hide queries; it only proves that an answer came from the right zone and was not modified.</p>
+      <p>The chain of trust has three components:</p>
+      <ul>
+        <li><strong>DNSKEY</strong> — the zone's public key.</li>
+        <li><strong>RRSIG</strong> — a signature over a particular record set.</li>
+        <li><strong>DS</strong> — a hash that the parent zone (for example <code>com</code>) holds about your zone's key. The DS record is what ties your zone into the global chain of trust.</li>
+      </ul>
+      <p>A validating resolver marks a successful check with the <strong>AD</strong> flag (<em>Authentic Data</em>) in the response. If a signature does not match, the resolver returns an error (<code>SERVFAIL</code>) and the site ultimately fails to load.</p>
+
+      <h2 id="dnssec-setup">Setting up DNSSEC</h2>
+      <p>DNSSEC is a two-step process and <strong>the order is critical</strong>:</p>
+      <ol>
+        <li><strong>Enable DNSSEC at your DNS provider.</strong> In Cloudflare: <em>DNS → Settings → DNSSEC → Enable DNSSEC</em>. Cloudflare generates the keys and starts signing answers.</li>
+        <li><strong>Add the DS record at your registrar.</strong> Cloudflare shows the required values (key tag, algorithm, digest type, digest). Enter them in your registrar's panel (for .ee domains, the registrar's DNSSEC section).</li>
+        <li><strong>Wait for propagation.</strong> The DS record usually propagates within minutes to hours. Only after that do validating resolvers start trusting your zone.</li>
+      </ol>
+      <div class="article-note warn">
+        <p><strong>The most common outage:</strong> adding the DS record before the zone is actually signed. At that moment the domain becomes unreachable for validating resolvers. Always fix the zone first, then the DS record.</p>
+      </div>
+      <p>If you switch DNS providers, the DS record must be replaced with the new provider's values. An old DS record does not match the new zone and causes the same kind of outage.</p>
+
+      <h2 id="together">How they work together</h2>
+      <p>Three layers reinforce each other:</p>
+      <ul>
+        <li><strong>CAA</strong> restricts <em>who</em> may issue a certificate.</li>
+        <li><strong>DNSSEC</strong> ensures the CAA answer (and all of DNS) cannot be altered in transit.</li>
+        <li><strong>Certificate Transparency</strong> logs make every issued certificate publicly visible, so wrong issuance does not go unnoticed.</li>
+      </ul>
+      <p>Without DNSSEC, CAA is still useful but weaker: an attacker able to forge DNS answers could hide the CAA answer too. DNSSEC makes such forgery detectable.</p>
+
+      <h2 id="errors">Common failures</h2>
+      <table>
+        <thead><tr><th>Symptom</th><th>Cause and fix</th></tr></thead>
+        <tbody>
+          <tr><td><code>CAA record prevents issuance</code></td><td>The CAA allows a different CA than the one you use. Add the correct <code>issue</code> record or remove the old one.</td></tr>
+          <tr><td>A subdomain renewal fails while the apex works</td><td>The subdomain has its own CAA that shadows the apex record. Check both levels.</td></tr>
+          <tr><td>A wildcard certificate is not issued</td><td>The <code>issuewild</code> record is missing or allows the wrong CA.</td></tr>
+          <tr><td>The domain stops loading after enabling DNSSEC</td><td>A DS record exists but the zone is not correctly signed. Remove the DS temporarily and fix the zone.</td></tr>
+          <tr><td>DNSSEC validation fails after switching DNS providers</td><td>The old DS record is still at the registrar. Update it with the new provider's values.</td></tr>
+          <tr><td><code>SERVFAIL</code> on every query</td><td>A broken signature or an expired key. Compare the zone and the DS record using dnsviz.net.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="article-cta">
+        <p>See which CAA records currently apply to your domain.</p>
+        <div class="article-cta-actions">
+          <a class="article-btn" href="../#checker">Check CAA and DNSSEC</a>
+          <a class="article-btn ghost" href="renew-ssl-certificate.html">Renewal guide</a>
+        </div>
+      </div>
+
+      <section class="article-faq" id="faq">
+        <h2>Frequently asked questions</h2>
+        <details>
+          <summary>Is CAA mandatory?</summary>
+          <p>No. CAA is optional, but every major CA honours it. If there is no CAA record, any trusted CA may issue a certificate.</p>
+        </details>
+        <details>
+          <summary>Does the CAA record have to be on the apex?</summary>
+          <p>Putting it on the apex is the most sensible choice, because then it applies to all subdomains. As an exception, a subdomain may have its own CAA, which replaces the apex record.</p>
+        </details>
+        <details>
+          <summary>Does DNSSEC make a website faster?</summary>
+          <p>No. DNSSEC adds some query volume and validation work. Its benefit is security, not speed.</p>
+        </details>
+        <details>
+          <summary>Does DNSSEC encrypt DNS queries?</summary>
+          <p>No. DNSSEC signs the answers, but queries and responses remain visible. Encryption requires separate technologies (DNS-over-HTTPS, DNS-over-TLS).</p>
+        </details>
+        <details>
+          <summary>What should I do when CAA blocks a renewal?</summary>
+          <p>Find the issuer domain the certificate uses and add it as an <code>issue</code> record. If you use several CAs, add them all. After the change, wait for the TTL to pass and try again.</p>
+        </details>
+      </section>
+
+      <aside class="article-related">
+        <h2>Read next</h2>
+        <ul>
+          <li><a href="renew-ssl-certificate.html">How to renew an SSL certificate</a></li>
+          <li><a href="what-is-a-pem-file.html">What is a PEM file and how do you read it?</a></li>
+          <li><a href="../api-docs.html">ssl.ee API: PEM and chain with a single curl command</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-brand">ssl<em>.ee</em></p>
+      <p class="footer-tagline">A privacy-respecting SSL certificate checker — every query runs in your browser.</p>
+      <nav class="footer-nav" aria-label="Contents">
+        <a href="../">Check a certificate</a>
+        <a href="../pem.html">PEM decoder</a>
+        <a href="../api-docs.html">API documentation</a>
+        <a href="renew-ssl-certificate.html">Certificate renewal</a>
+        <a href="what-is-a-pem-file.html">What is a PEM file</a>
+        <a href="caa-and-dnssec.html">CAA and DNSSEC</a>
+      </nav>
+      <p class="footer-meta">© 2026 ssl.ee</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var THEME_KEY = 'ssl-ee-theme';
+      var themeToggle = document.getElementById('theme-toggle');
+      function detectTheme() {
+        try { return localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'; }
+        catch (e) { return 'dark'; }
+      }
+      function applyTheme(theme) {
+        document.documentElement.dataset.theme = theme;
+        if (themeToggle) themeToggle.setAttribute('aria-pressed', String(theme === 'light'));
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'light' ? '#f5f7fb' : '#04060c');
+        try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* private mode */ }
+      }
+      applyTheme(detectTheme());
+      if (themeToggle) {
+        themeToggle.addEventListener('click', function () {
+          applyTheme(detectTheme() === 'light' ? 'dark' : 'light');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -60,17 +60,53 @@
     <lastmod>2026-11-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="et" href="https://ssl.ee/artiklid/ssl-sertifikaadi-uuendamine.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ssl.ee/en/artiklid/renew-ssl-certificate.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ssl.ee/artiklid/ssl-sertifikaadi-uuendamine.html"/>
   </url>
   <url>
     <loc>https://ssl.ee/artiklid/mis-on-pem-fail.html</loc>
     <lastmod>2026-11-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="et" href="https://ssl.ee/artiklid/mis-on-pem-fail.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ssl.ee/en/artiklid/what-is-a-pem-file.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ssl.ee/artiklid/mis-on-pem-fail.html"/>
   </url>
   <url>
     <loc>https://ssl.ee/artiklid/caa-ja-dnssec.html</loc>
     <lastmod>2026-11-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="et" href="https://ssl.ee/artiklid/caa-ja-dnssec.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ssl.ee/en/artiklid/caa-and-dnssec.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ssl.ee/artiklid/caa-ja-dnssec.html"/>
+  </url>
+  <url>
+    <loc>https://ssl.ee/en/artiklid/renew-ssl-certificate.html</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="et" href="https://ssl.ee/artiklid/ssl-sertifikaadi-uuendamine.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ssl.ee/en/artiklid/renew-ssl-certificate.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ssl.ee/artiklid/ssl-sertifikaadi-uuendamine.html"/>
+  </url>
+  <url>
+    <loc>https://ssl.ee/en/artiklid/what-is-a-pem-file.html</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="et" href="https://ssl.ee/artiklid/mis-on-pem-fail.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ssl.ee/en/artiklid/what-is-a-pem-file.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ssl.ee/artiklid/mis-on-pem-fail.html"/>
+  </url>
+  <url>
+    <loc>https://ssl.ee/en/artiklid/caa-and-dnssec.html</loc>
+    <lastmod>2026-11-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="et" href="https://ssl.ee/artiklid/caa-ja-dnssec.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ssl.ee/en/artiklid/caa-and-dnssec.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ssl.ee/artiklid/caa-ja-dnssec.html"/>
   </url>
 </urlset>

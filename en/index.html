@@ -377,6 +377,7 @@
               <li data-i18n-html="learn.step3">Test automatic renewal: <code>sudo certbot renew --dry-run</code>. Certbot sets up the scheduled task for you.</li>
             </ol>
             <p class="learn-tip" data-i18n="learn.tip">Tip: if you use Cloudflare, you can manage SSL from its dashboard instead – no Certbot needed on the server.</p>
+            <a class="learn-link" href="artiklid/renew-ssl-certificate.html">Read the detailed renewal guide →</a>
           </div>
         </div>
       </div>
@@ -409,6 +410,33 @@
         </div>
       </div>
     </section>
+
+    <section class="guides" id="guides">
+      <div class="container">
+        <h2>Guides and articles</h2>
+        <p class="guides-sub">Longer explanations of the topics behind a check result — no sign-up, no ads.</p>
+        <div class="guide-grid">
+          <a class="guide-card" href="artiklid/renew-ssl-certificate.html">
+            <span class="guide-kicker">Guide</span>
+            <h3>How to renew an SSL certificate</h3>
+            <p>Certbot, Cloudflare and cPanel step by step: when to start, how to automate renewal and what to do when it fails.</p>
+            <span class="guide-more">Read more →</span>
+          </a>
+          <a class="guide-card" href="artiklid/what-is-a-pem-file.html">
+            <span class="guide-kicker">Explainer</span>
+            <h3>What is a PEM file and how do you read it</h3>
+            <p>PEM, DER and PKCS#12 explained clearly: what BEGIN CERTIFICATE lines mean and which openssl commands you actually need.</p>
+            <span class="guide-more">Read more →</span>
+          </a>
+          <a class="guide-card" href="artiklid/caa-and-dnssec.html">
+            <span class="guide-kicker">Explainer</span>
+            <h3>CAA and DNSSEC explained</h3>
+            <p>How CAA records restrict which CAs may issue for your domain, what DNSSEC adds, and why the order matters.</p>
+            <span class="guide-more">Read more →</span>
+          </a>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -419,6 +447,7 @@
         <a href="#checker" data-i18n="footer.navCheck">Check a certificate</a>
         <a href="#learn" data-i18n="footer.navLearn">Certificate renewal</a>
         <a href="#faq" data-i18n="footer.navFaq">Frequently asked questions</a>
+        <a href="#guides">Guides and articles</a>
         <a href="api-docs.html" data-i18n="footer.navApi">API documentation</a>
       </nav>
       <p class="footer-meta"><span data-i18n="footer.sources">Data sources: Cert Spotter · crt.sh · MDN HTTP Observatory · Trustico · Cloudflare DNS</span> · <span id="footer-year">© 2026 ssl.ee</span></p>
